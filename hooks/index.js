@@ -109,13 +109,18 @@ function getToken(req, cb) {
   const ctx = req.webtaskContext.data;
   const domain = ctx.AUTH0_DOMAIN;
 
+
   var apiUrl = `https://${domain}/oauth/token`;
   var audience = `https://${domain}/api/v2/`;
   var clientSecret = ctx.AUTH0_CLIENT_SECRET;
   var clientId = ctx.AUTH0_CLIENT_ID;
+  console.log('URL', apiUrl);
+  console.log('URL', ctx);
 
   return new Promise(function (req, res){
-    Request.post(apiUrl, {
+    Request({
+      method: "POST",
+      uri: apiUrl,
       body: {
         audience: audience,
         grant_type: 'client_credentials',
