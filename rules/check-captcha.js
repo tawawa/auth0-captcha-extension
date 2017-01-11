@@ -1,5 +1,5 @@
 export default function createRule(config) {
-  const rule = (function (user, context, callback) {
+  let rule = (function (user, context, callback) {
     // Based on work done by Nicolas Sebana
     var secret = configuration.CAPTCHA_SECRET;
     var jwt = require('jsonwebtoken');

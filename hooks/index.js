@@ -4,7 +4,7 @@ import auth0            from 'auth0@2.1.0';
 import _                from 'lodash';
 import jwt              from 'jsonwebtoken';
 import URLJoin          from 'url-join';
-import createRule       from '../hooks/captcha-rule.js';
+import createRule       from '../rules/check-captcha.js';
 
 const ManagementClient = auth0.ManagementClient;
 const hooks            = express.Router();
@@ -18,6 +18,7 @@ export default hooks;
  */
 function createRuleValidator (path) {
   return function (req, res, next) {
+    console.log("Request validator");
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
       var token = req.headers.authorization.split(' ')[1];
       var isValid = jwt.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {

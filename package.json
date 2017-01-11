@@ -11,8 +11,10 @@
   "author": "abhishek.hingnikar@auth0.com",
   "license": "MIT",
   "dependencies": {
+    "@types/body-parser": "0.0.33",
     "auth0": "^2.1.0",
     "auth0-oauth2-express": "^1.1.10",
+    "body-parser": "1.12.4",
     "express": "4.14.0",
     "jsonwebtoken": "^7.0.0",
     "lodash": "^4.13.1",
