@@ -19,6 +19,7 @@ module.exports = Request.get(LIST_MODULES_URL, { json: true }).then(function (da
     },
     module: {
       loaders: [
+        { test: /\.js/, loader: require.resolve('babel-loader') },
         { test: /\.pug$/, loader: require.resolve('jade-loader') },
         { test: /\.json$/, loader: 'json' }
       ]
