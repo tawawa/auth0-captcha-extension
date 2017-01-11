@@ -1,12 +1,14 @@
 import Express        from 'express';
 import jwt            from 'jsonwebtoken';
 import URLJoin        from 'url-join';
-import template       from '../views/index.pug';
+// import template       from '../views/index.pug';
 import bodyParser     from 'body-parser';
 import request        from 'request-promise';
 import verifyCaptcha  from '../lib/verifyCaptcha';
 import createResponse from '../lib/createRuleResponse';
-
+function template(args){
+  return JSON.stringify(args);
+}
 const router = Express.Router();
 
 router.use(function decodeAndValidateToken(req, res, next) {
