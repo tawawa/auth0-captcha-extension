@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An extension that applies captcha",
   "scripts": {
-    "bundle": "webpack -p --config webpack.wt.config.js"
+    "bundle": "webpack --config webpack.wt.config.js"
   },
   "keywords": [
     "auth0"

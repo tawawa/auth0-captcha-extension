@@ -121,13 +121,12 @@ function getToken(req, cb) {
     Request({
       method: "POST",
       uri: apiUrl,
-      body: {
+      json: {
         audience: audience,
         grant_type: 'client_credentials',
         client_id: clientId,
         client_secret: clientSecret
-      },
-      json: true
+      }
     }).end(function (err, response, body) {
       if(err) return reject(err);
       resolve(body.access_token);
