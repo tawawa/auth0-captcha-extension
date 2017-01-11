@@ -1,15 +1,18 @@
 import express          from 'express';
 import Request          from 'request';
 import auth0            from 'auth0';
-import _                from 'lodash';
 import jwt              from 'jsonwebtoken';
 import URLJoin          from 'url-join';
 import createRule       from '../rules/check-captcha.js';
 
+function findRule(rules, name){
+  return rules.filter(function(rule){
+    return rule.name === name;
+  })[0];
+}
+
 const ManagementClient = auth0.ManagementClient;
 const hooks            = express.Router();
-
-export default hooks;
 
 /*
  * Accepts a string path and returns an Express.Middleware
@@ -18,7 +21,6 @@ export default hooks;
  */
 function createRuleValidator (path) {
   return function (req, res, next) {
-    console.log("Request validator");
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
       var token = req.headers.authorization.split(' ')[1];
       var isValid = jwt.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {
@@ -37,10 +39,10 @@ function createRuleValidator (path) {
   }
 }
 
-// Validate JWT for on-install
-hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
-hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
-hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
+// // Validate JWT for on-install
+// hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
+// hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
+// hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
 
 // Getting Auth0 APIV2 access_token
 hooks.use(function (req, res, next) {
@@ -85,7 +87,7 @@ hooks.delete('/on-uninstall', function (req, res) {
   req.auth0
     .rules.getAll()
     .then(function (rules) {
-      var rule = _.find(rules, {name: 'captcha-rule-PLEASE-DO-NOT-RENAME'});
+      var rule = findRule(rules, 'captcha-rule-PLEASE-DO-NOT-RENAME');
 
       if (rule) {
         req.auth0
@@ -127,3 +129,5 @@ function getToken(req, cb) {
     });
   });
 }
+
+export default hooks;
