@@ -1,6 +1,6 @@
 import express          from 'express';
 import Request          from 'request';
-import auth0            from 'auth0@2.1.0';
+import auth0            from 'auth0';
 import _                from 'lodash';
 import jwt              from 'jsonwebtoken';
 import URLJoin          from 'url-join';
