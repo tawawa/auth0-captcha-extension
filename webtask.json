@@ -1,9 +1,9 @@
 {
-  "title": "Sample Extension",
-  "name": "sample-extension",
-  "version": "1.0.0",
-  "author": "javier.centurion@auth0.com",
-  "description": "A Sample Extension",
+  "title": "Captcha Extension",
+  "name": "captcha-extension",
+  "version": "0.1.0",
+  "author": "abhishek.hingikar@auth0.com",
+  "description": "An extension that uses Google's ReCaptcha",
   "type": "application",
   "keywords": [
     "auth0"

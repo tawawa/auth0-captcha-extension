@@ -1,14 +1,22 @@
-var express  = require('express');
-var Request  = require('superagent');
-var ManagementClient = require('auth0@2.1.0').ManagementClient;
-var _        = require('lodash');
-var jwt      = require('jsonwebtoken');
-var hooks    = express.Router();
-var URLJoin = require('url-join');
+import express          from 'express';
+import Request          from 'request';
+import auth0            from 'auth0@2.1.0';
+import _                from 'lodash';
+import jwt              from 'jsonwebtoken';
+import URLJoin          from 'url-join';
+import createRule       from '../hooks/captcha-rule.js';
 
-module.exports = hooks;
+const ManagementClient = auth0.ManagementClient;
+const hooks            = express.Router();
 
-function validateJwt (path) {
+export default hooks;
+
+/*
+ * Accepts a string path and returns an Express.Middleware
+ * which verifies if the audience for jwt included that path
+ * along with the issuer etc.
+ */
+function createRuleValidator (path) {
   return function (req, res, next) {
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
       var token = req.headers.authorization.split(' ')[1];
@@ -29,31 +37,31 @@ function validateJwt (path) {
 }
 
 // Validate JWT for on-install
-hooks.use('/on-install', validateJwt('/.extensions/on-install'));
-hooks.use('/on-uninstall', validateJwt('/.extensions/on-uninstall'));
-hooks.use('/on-update',    validateJwt('/.extensions/on-update'));
+hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
+hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
+hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
 
 // Getting Auth0 APIV2 access_token
 hooks.use(function (req, res, next) {
-  getToken(req, function (access_token, err) {
-    if (err) return next(err);
-
+  getToken(req).then(function (accessToken) {
     var management = new ManagementClient({
       domain: req.webtaskContext.data.AUTH0_DOMAIN,
-      token: access_token
+      token: accessToken
     });
-
     req.auth0 = management;
-
     next();
-  });
+  }).catch(next);
 });
 
 // This endpoint would be called by webtask-gallery
 hooks.post('/on-install', function (req, res) {
+  const ctx = req.webtaskContext.data;
+
   req.auth0.rules.create({
-    name: 'extension-rule',
-    script: "function (user, context, callback) {\n  callback(null, user, context);\n}",
+    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
+    script: createRule({
+      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS
+    }),
     order: 2,
     enabled: true,
     stage: "login_success"
@@ -76,7 +84,7 @@ hooks.delete('/on-uninstall', function (req, res) {
   req.auth0
     .rules.getAll()
     .then(function (rules) {
-      var rule = _.find(rules, {name: 'extension-rule'});
+      var rule = _.find(rules, {name: 'captcha-rule-PLEASE-DO-NOT-RENAME'});
 
       if (rule) {
         req.auth0
@@ -95,25 +103,26 @@ hooks.delete('/on-uninstall', function (req, res) {
 });
 
 function getToken(req, cb) {
-  var apiUrl = 'https://'+req.webtaskContext.data.AUTH0_DOMAIN+'/oauth/token';
-  var audience = 'https://'+req.webtaskContext.data.AUTH0_DOMAIN+'/api/v2/';
-  var clientId = req.webtaskContext.data.AUTH0_CLIENT_ID;
-  var clientSecret = req.webtaskContext.data.AUTH0_CLIENT_SECRET;
+  const ctx = req.webtaskContext.data;
+  const domain = ctx.AUTH0_DOMAIN;
 
-  Request
-    .post(apiUrl)
-    .send({
-      audience: audience,
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret
-    })
-    .type('application/json')
-    .end(function (err, res) {
-      if (err || !res.ok) {
-        cb(null, err);
-      } else {
-        cb(res.body.access_token);
-      }
+  var apiUrl = `https://${domain}/oauth/token`;
+  var audience = `https://${domain}/api/v2/`;
+  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
+  var clientId = ctx.AUTH0_CLIENT_ID;
+
+  return new Promise(function (req, res){
+    Request.post(apiUrl, {
+      body: {
+        audience: audience,
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret
+      },
+      json: true
+    }).end(function (err, response, body) {
+      if(err) return reject(err);
+      resolve(body.access_token);
     });
+  });
 }
