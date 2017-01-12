@@ -250,6 +250,10 @@ module.exports =
 	app.use('/.extensions', _hooks2.default);
 	app.use(_routes2.default);
 
+	req.use(function (err, req, res, next) {
+	  return res.status(501).end('Internal Server Error');
+	});
+
 	exports.default = app;
 
 /***/ },
@@ -1104,10 +1108,10 @@ module.exports =
 	  };
 	}
 
-	// // Validate JWT for on-install
-	// hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
-	// hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
-	// hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
+	// Validate JWT for on-install
+	hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
+	hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
+	hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
 
 	// Getting Auth0 APIV2 access_token
 	hooks.use(function (req, res, next) {
@@ -1119,6 +1123,11 @@ module.exports =
 	    req.auth0 = management;
 	    next();
 	  }).catch(next);
+	});
+
+	/* To check everything */
+	hooks.get('/checkall', function (a, b) {
+	  b.status(200).end('Ok');
 	});
 
 	// This endpoint would be called by webtask-gallery
@@ -1171,20 +1180,18 @@ module.exports =
 	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
 	  var clientId = ctx.AUTH0_CLIENT_ID;
 
-	  return new Promise(function (req, res) {
-	    (0, _request2.default)({
-	      method: "POST",
-	      uri: apiUrl,
-	      body: JSON.stringify({
+	  return new Promise(function (resolve, reject) {
+	    var config = {
+	      body: {
 	        audience: audience,
 	        grant_type: 'client_credentials',
 	        client_id: clientId,
 	        client_secret: clientSecret
-	      }),
-	      headers: {
-	        'Content-type': 'application/json'
-	      }
-	    }).end(function (err, response, body) {
+	      },
+	      json: true
+	    };
+
+	    _request2.default.post(apiUrl, config, function (err, response, body) {
 	      if (err) return reject(err);
 	      resolve(body.access_token);
 	    });
