@@ -34,7 +34,7 @@ module.exports = Request.get(LIST_MODULES_URL, { json: true }).then(function (da
       'auth0-sandbox-ext': true,
       'detective': true,
       'sandboxjs': true,
-      'webtask-tools': false,
+      'webtask-tools': true,
       'auth0@2.1.0': true
     }),
     plugins: [

@@ -1,8 +1,14 @@
 export default function createRule(config) {
   let rule = (function (user, context, callback) {
     // Based on work done by Nicolas Sebana
-    var secret = configuration.CAPTCHA_SECRET;
-    var jwt = require('jsonwebtoken');
+    const jwt = escapeRequire('jsonwebtoken');
+    const audience = `https://${auth0.domain}/captcha/webtask`;
+    const issuer = `https://${auth0.domain}/captcha/rule`;
+
+    const config = CONFIG;
+    const secret = config.EXTENSION_SECRET;
+    const redirectUrl = config.CAPTCHA_URL;
+    const maxAllowedFailed = config.MAX_ALLOWED_FAILED_ATTEMPTS;
 
     if (context.protocol === "redirect-callback") {
 
@@ -25,8 +31,8 @@ export default function createRule(config) {
         context.request.query.token,
         secret,
         {
-          audience: ruleUri,
-          issuer: wtUri
+          audience: issuer,
+          issuer: audience
         },
         postVerify
       );
@@ -35,34 +41,31 @@ export default function createRule(config) {
 
     // This will create a management client with elavated privilages
 
-    if (MAX_ALLOWED_FAILED_ATTEMPTS) {
-      const client = require('auth0@2.1.0').ManagementClient(auth0.accessToken);
+    if (maxAllowedFailed) {
+      const client = escapeRequire('auth0@2.1.0').ManagementClient(auth0.accessToken);
       client.logs.getAll({
-        q: `date: [${user.last_login || '*'} to '*'] AND type: ("f" OR "fp" OR "fu") AND user_id: "${req.user_id}"`
-      }).then(redirectToCaptcha).catch(function (){
+        q: `date: [${user.last_login || '*'} to '*'] AND type: ("f" OR "fp" OR "fu") AND user_id: "${user.user_id}"`
+      }).then(redirectToCaptcha).catch(function () {
         return callback(new Error('There was an error completing login, please try again later'));
       });
-    }else{
+    } else {
       redirectToCaptcha([], true);
     }
 
     function redirectToCaptcha(logs, forced) {
-      if (forced || logs.length > MAX_ALLOWED_FAILED_ATTEMPTS) {
-        var token = jwt.sign({
+      if (forced || logs.length > maxAllowedFailed) {
+        const token = jwt.sign({
           sub: user.user_id,
           clientName: context.clientName
         },
           secret,
           {
             expiresInMinutes: 5,
-            audience: wtUri,
-            issuer: ruleUri
+            audience: audience,
+            issuer: issuer
           }
         );
-        // This will redirect to the right place
-        var redirectUrl = auth0.domain.replace('.auth0.com', '') + '.webtask.io/captcha';
-
-        var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
+        const separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
 
         // Issue the redirect command
         context.redirect = {
@@ -76,8 +79,10 @@ export default function createRule(config) {
 
   }).toString();
 
-  Object.keys(config).forEach(function(key){
-    const re = new RegExp(key, 'g');
-    rule = rule.replace(re, 'JSON.parse(' + JSON.stringify(config[key]) + ')');
-  });
+  const re = new RegExp('CONFIG', 'g');
+  const rr = new RegExp('escapeRequire', 'g');
+
+  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config) + '\')');
+  rule = rule.replace(rr, 'require');
+  return rule;
 }

@@ -1,6 +1,6 @@
 import express          from 'express';
 import Request          from 'request';
-import auth0            from 'auth0';
+import auth0            from 'auth0@2.1.0';
 import jwt              from 'jsonwebtoken';
 import URLJoin          from 'url-join';
 import createRule       from '../rules/check-captcha.js';
@@ -21,6 +21,7 @@ const hooks            = express.Router();
  */
 function createRuleValidator (path) {
   return function (req, res, next) {
+
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
       var token = req.headers.authorization.split(' ')[1];
       var isValid = jwt.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {
@@ -39,10 +40,10 @@ function createRuleValidator (path) {
   }
 }
 
-// // Validate JWT for on-install
-// hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
-// hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
-// hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
+// Validate JWT for on-install
+hooks.use('/on-install', createRuleValidator('/.extensions/on-install'));
+hooks.use('/on-uninstall', createRuleValidator('/.extensions/on-uninstall'));
+hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
 
 // Getting Auth0 APIV2 access_token
 hooks.use(function (req, res, next) {
@@ -56,6 +57,11 @@ hooks.use(function (req, res, next) {
   }).catch(next);
 });
 
+/* To check everything */
+hooks.get('/', function (a,b) {
+  b.status(200).end('Ok');
+});
+
 // This endpoint would be called by webtask-gallery
 hooks.post('/on-install', function (req, res) {
   const ctx = req.webtaskContext.data;
@@ -63,7 +69,9 @@ hooks.post('/on-install', function (req, res) {
   req.auth0.rules.create({
     name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
     script: createRule({
-      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS
+      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
+      CAPTCHA_URL: URLJoin(ctx.WT_URL),
+      EXTENSION_SECRET: ctx.EXTENSION_SECRET,
     }),
     order: 2,
     enabled: true,
@@ -72,7 +80,8 @@ hooks.post('/on-install', function (req, res) {
   .then(function () {
     res.sendStatus(204);
   })
-  .catch(function () {
+  .catch(function (e) {
+    console.log(e);
     res.sendStatus(500);
   });
 });
@@ -114,20 +123,19 @@ function getToken(req, cb) {
   var audience = `https://${domain}/api/v2/`;
   var clientSecret = ctx.AUTH0_CLIENT_SECRET;
   var clientId = ctx.AUTH0_CLIENT_ID;
-  console.log('URL', apiUrl);
-  console.log('URL', ctx);
 
-  return new Promise(function (req, res){
-    Request({
-      method: "POST",
-      uri: apiUrl,
-      json: {
+  return new Promise(function (resolve, reject){
+    const config = {
+      body: {
         audience: audience,
         grant_type: 'client_credentials',
         client_id: clientId,
         client_secret: clientSecret
-      }
-    }).end(function (err, response, body) {
+      },
+      json: true
+    };
+
+    Request.post(apiUrl, config, function (err, response, body) {
       if(err) return reject(err);
       resolve(body.access_token);
     });

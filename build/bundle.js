@@ -203,7 +203,6 @@ module.exports =
 	var router = _express2.default.Router();
 
 	router.use(function decodeAndValidateToken(req, res, next) {
-	  console.log("Router is intercepting routes");
 	  var token = req.query.token || req.body.token;
 	  var state = req.query.state || req.body.state;
 
