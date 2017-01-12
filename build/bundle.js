@@ -237,10 +237,9 @@ module.exports =
 	});
 
 	router.post('/', function (req, res) {
-	  var _req$ip = req.ip,
-	      ip = _req$ip.ip,
-	      state = _req$ip.state,
-	      payload = _req$ip.payload;
+	  var ip = req.ip,
+	      state = req.state,
+	      payload = req.payload;
 
 	  var ctx = req.webtaskContext.data;
 	  var sharedSecret = ctx.EXTENSION_SECRET;

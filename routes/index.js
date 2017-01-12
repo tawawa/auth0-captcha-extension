@@ -49,7 +49,7 @@ router.get('/', function (req, res) {
 
 
 router.post('/', function (req, res) {
-  const {ip, state, payload} = req.ip;
+  const {ip, state, payload} = req;
   const ctx = req.webtaskContext.data;
   const sharedSecret = ctx.EXTENSION_SECRET;
   const domain = ctx.AUTH0_DOMAIN;
