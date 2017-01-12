@@ -154,7 +154,7 @@ module.exports =
 			"MAX_ALLOWED_FAILED_ATTEMPTS": {
 				"description": "Maximum allowed failed login attempts, beyond this the captcha will start showing, 0 means the dialog will always popup",
 				"type": "number",
-				"default": 3
+				"default": "3"
 			},
 			"CAPTCHA_TITLE": {
 				"description": "The title you want to be displayed on the user captcha page",
@@ -793,7 +793,7 @@ module.exports =
 	  req.auth0.rules.create({
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
-	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
+	      MAX_ALLOWED_FAILED_ATTEMPTS: parseInt(ctx.MAX_ALLOWED_FAILED_ATTEMPTS, 10) || 0,
 	      EXTENSION_SECRET: ctx.EXTENSION_SECRET,
 	      CAPTCHA_URL: ctx.WT_URL
 	    }),

@@ -68,7 +68,7 @@ hooks.post('/on-install', function (req, res) {
   req.auth0.rules.create({
     name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
     script: createRule({
-      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
+      MAX_ALLOWED_FAILED_ATTEMPTS: parseInt(ctx.MAX_ALLOWED_FAILED_ATTEMPTS, 10) || 0,
       EXTENSION_SECRET: ctx.EXTENSION_SECRET,
       CAPTCHA_URL: ctx.WT_URL
     }),
