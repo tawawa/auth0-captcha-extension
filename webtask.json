@@ -17,17 +17,24 @@
   },
   "secrets": {
     "CAPTCHA_SITEKEY": {
-      "description": "The google recaptcha sitekey"
+      "description": "The google recaptcha sitekey, If you don't have one please generate one at https://www.google.com/recaptcha/"
     },
     "CAPTCHA_SECRET": {
-      "description": "The google recaptcha api secret",
+      "description": "The google recaptcha api secret, If you don't have one please generate one at https://www.google.com/recaptcha/",
       "type": "password"
     },
+    "STYLES": {
+      "description": "Any custom styles you to be added to the head of the page use this to customize the look and feel of your website",
+      "default": "html{\n}"
+    },
     "CAPTCHA_MESSAGE": {
-      "description": "The message you want to be displayed to the user on captcha page"
+      "description": "The message you want to be displayed to the user on captcha page",
+      "default": "Please verify that you are a human being."
+
     },
     "CAPTCHA_TITLE": {
-      "description": "The title you want to be displayed on the user captcha page"
+      "description": "The title you want to be displayed on the user captcha page",
+      "default": "Humanity Verification Required"
     }
   }
 }

@@ -54,6 +54,7 @@ router.get('/', function (req, res) {
   const ctx = req.webtaskContext.data;
   res.header("Content-Type", 'text/html');
   res.status(200).send(template(Object.assign({
+    style: ctx.STYLES,
     message: ctx.CAPTCHA_MESSAGE,
     apiKey: ctx.CAPTCHA_SITEKEY,
     title: ctx.CAPTCHA_TITLE,
@@ -68,7 +69,8 @@ router.post('/', function (req, res) {
   console.log("Recieved post");
   const {ip, state, payload} = req;
   const ctx = req.webtaskContext.data;
-  const sharedSecret = ctx.CAPTCHA_SECRET;
+  const captchaSecret = ctx.CAPTCHA_SECRET;
+  const sharedSecret = ctx.EXTENSION_SECRET;
   const domain = `https://${ctx.AUTH0_DOMAIN}`;
   const captchaResponse = req.body["g-recaptcha-response"];
   const issuer = URLJoin(domain, 'captcha/rule');
@@ -76,13 +78,13 @@ router.post('/', function (req, res) {
 
   console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
 
-  verifyCaptcha(captchaResponse, sharedSecret, ip)
+  verifyCaptcha(captchaResponse, captchaSecret, ip)
     .then(function () {
       console.log("Verified now create Response");
-      return createResponse(null, secret, payload, issuer, audience);
+      return createResponse(null, sharedSecret, payload, issuer, audience);
     }, function (err) {
       console.log("Failed now create Response");
-      return createResponse(err.message, secret, payload, issuer, audience);
+      return createResponse(err.message, sharedSecret, payload, issuer, audience);
     }).then(function (token) {
       console.log("Forged token");
       res.redirect(

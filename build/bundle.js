@@ -137,17 +137,23 @@ module.exports =
 		},
 		"secrets": {
 			"CAPTCHA_SITEKEY": {
-				"description": "The google recaptcha sitekey"
+				"description": "The google recaptcha sitekey, If you don't have one please generate one at https://www.google.com/recaptcha/"
 			},
 			"CAPTCHA_SECRET": {
-				"description": "The google recaptcha api secret",
+				"description": "The google recaptcha api secret, If you don't have one please generate one at https://www.google.com/recaptcha/",
 				"type": "password"
 			},
+			"STYLES": {
+				"description": "Any custom styles you to be added to the head of the page use this to customize the look and feel of your website",
+				"default": "html{\n}"
+			},
 			"CAPTCHA_MESSAGE": {
-				"description": "The message you want to be displayed to the user on captcha page"
+				"description": "The message you want to be displayed to the user on captcha page",
+				"default": "Please verify that you are a human being."
 			},
 			"CAPTCHA_TITLE": {
-				"description": "The title you want to be displayed on the user captcha page"
+				"description": "The title you want to be displayed on the user captcha page",
+				"default": "Humanity Verification Required"
 			}
 		}
 	};
@@ -252,6 +258,7 @@ module.exports =
 	  var ctx = req.webtaskContext.data;
 	  res.header("Content-Type", 'text/html');
 	  res.status(200).send((0, _index2.default)(Object.assign({
+	    style: ctx.STYLES,
 	    message: ctx.CAPTCHA_MESSAGE,
 	    apiKey: ctx.CAPTCHA_SITEKEY,
 	    title: ctx.CAPTCHA_TITLE,
@@ -268,7 +275,8 @@ module.exports =
 	      payload = req.payload;
 
 	  var ctx = req.webtaskContext.data;
-	  var sharedSecret = ctx.CAPTCHA_SECRET;
+	  var captchaSecret = ctx.CAPTCHA_SECRET;
+	  var sharedSecret = ctx.EXTENSION_SECRET;
 	  var domain = 'https://' + ctx.AUTH0_DOMAIN;
 	  var captchaResponse = req.body["g-recaptcha-response"];
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
@@ -276,12 +284,12 @@ module.exports =
 
 	  console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
 
-	  (0, _verifyCaptcha2.default)(captchaResponse, sharedSecret, ip).then(function () {
+	  (0, _verifyCaptcha2.default)(captchaResponse, captchaSecret, ip).then(function () {
 	    console.log("Verified now create Response");
-	    return (0, _createRuleResponse2.default)(null, secret, payload, issuer, audience);
+	    return (0, _createRuleResponse2.default)(null, sharedSecret, payload, issuer, audience);
 	  }, function (err) {
 	    console.log("Failed now create Response");
-	    return (0, _createRuleResponse2.default)(err.message, secret, payload, issuer, audience);
+	    return (0, _createRuleResponse2.default)(err.message, sharedSecret, payload, issuer, audience);
 	  }).then(function (token) {
 	    console.log("Forged token");
 	    res.redirect(domain + '/continue?state=' + state + '&token=' + token);
@@ -347,8 +355,8 @@ module.exports =
 	var buf = [];
 	var jade_mixins = {};
 	var jade_interp;
-	;var locals_for_with = (locals || {});(function (apiKey, message, state, target, title, token) {
-	buf.push("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><style type=\"text/css\">html {\nfont-family: sans-serif;\n-webkit-text-size-adjust: 100%;\n-ms-text-size-adjust: 100%;\n}\nbody { margin: 0; }\n.container { padding-right: 15px; padding-left: 15px;margin-right: auto; margin-left: auto; }\nh1 { margin: .67em 0; font-size: 2em; font-family: inherit; font-weight: 500; line-height: 1.1; color: inherit; }</style><title>Confirm you are human</title><!-- Latest compiled and minified CSS--><script src=\"https://www.google.com/recaptcha/api.js\"></script></head><body><script type=\"text/javascript\">var submitform = function() {\n  document.getElementById(\"captchaform\").submit();\n};</script><div class=\"container\"><form id=\"captchaform\"" + (jade.attr("action", target, true, true)) + " method=\"POST\" class=\"form-signin\"><h1>" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</h1><p>" + (jade.escape(null == (jade_interp = message) ? "" : jade_interp)) + "</p><input type=\"hidden\"" + (jade.attr("value", state, true, true)) + " name=\"state\"><input type=\"hidden\"" + (jade.attr("value", token, true, true)) + " name=\"token\"><div" + (jade.attr("data-sitekey", apiKey, true, true)) + " data-callback=\"submitform\" class=\"g-recaptcha\"></div></form></div></body></html>");}.call(this,"apiKey" in locals_for_with?locals_for_with.apiKey:typeof apiKey!=="undefined"?apiKey:undefined,"message" in locals_for_with?locals_for_with.message:typeof message!=="undefined"?message:undefined,"state" in locals_for_with?locals_for_with.state:typeof state!=="undefined"?state:undefined,"target" in locals_for_with?locals_for_with.target:typeof target!=="undefined"?target:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"token" in locals_for_with?locals_for_with.token:typeof token!=="undefined"?token:undefined));;return buf.join("");
+	;var locals_for_with = (locals || {});(function (apiKey, message, state, style, target, title, token) {
+	buf.push("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><style type=\"text/css\">" + (jade.escape(null == (jade_interp = style) ? "" : jade_interp)) + "</style><title>" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</title><!-- Latest compiled and minified CSS--><script src=\"https://www.google.com/recaptcha/api.js\"></script></head><body><script type=\"text/javascript\">var submitform = function() {\n  document.getElementById(\"captchaform\").submit();\n};</script><div class=\"container\"><form id=\"captchaform\"" + (jade.attr("action", target, true, true)) + " method=\"POST\" class=\"form-signin\"><h1>" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</h1><p>" + (jade.escape(null == (jade_interp = message) ? "" : jade_interp)) + "</p><input type=\"hidden\"" + (jade.attr("value", state, true, true)) + " name=\"state\"><input type=\"hidden\"" + (jade.attr("value", token, true, true)) + " name=\"token\"><div" + (jade.attr("data-sitekey", apiKey, true, true)) + " data-callback=\"submitform\" class=\"g-recaptcha\"></div></form></div></body></html>");}.call(this,"apiKey" in locals_for_with?locals_for_with.apiKey:typeof apiKey!=="undefined"?apiKey:undefined,"message" in locals_for_with?locals_for_with.message:typeof message!=="undefined"?message:undefined,"state" in locals_for_with?locals_for_with.state:typeof state!=="undefined"?state:undefined,"style" in locals_for_with?locals_for_with.style:typeof style!=="undefined"?style:undefined,"target" in locals_for_with?locals_for_with.target:typeof target!=="undefined"?target:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined,"token" in locals_for_with?locals_for_with.token:typeof token!=="undefined"?token:undefined));;return buf.join("");
 	}
 
 /***/ },
