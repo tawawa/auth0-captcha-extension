@@ -250,7 +250,7 @@ module.exports =
 	app.use('/.extensions', _hooks2.default);
 	app.use(_routes2.default);
 
-	req.use(function (err, req, res, next) {
+	app.use(function (err, req, res, next) {
 	  return res.status(501).end('Internal Server Error');
 	});
 
