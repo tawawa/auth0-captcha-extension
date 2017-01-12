@@ -35,7 +35,9 @@ module.exports = Request.get(LIST_MODULES_URL, { json: true }).then(function (da
       'detective': true,
       'sandboxjs': true,
       'webtask-tools': true,
-      'auth0@2.1.0': true
+      'auth0@2.1.0': true,
+      // For some reason was failing
+      'jsonwebtoken@7.1.9': true,
     }),
     plugins: [
       new Webpack.optimize.DedupePlugin()

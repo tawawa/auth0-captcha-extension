@@ -85,11 +85,11 @@ module.exports =
 
 	var _webtask2 = _interopRequireDefault(_webtask);
 
-	var _routes = __webpack_require__(14);
+	var _routes = __webpack_require__(5);
 
 	var _routes2 = _interopRequireDefault(_routes);
 
-	var _hooks = __webpack_require__(23);
+	var _hooks = __webpack_require__(16);
 
 	var _hooks2 = _interopRequireDefault(_hooks);
 
@@ -159,26 +159,7 @@ module.exports =
 	};
 
 /***/ },
-/* 5 */,
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */,
-/* 10 */
-/***/ function(module, exports) {
-
-	module.exports = require("body-parser");
-
-/***/ },
-/* 11 */
-/***/ function(module, exports) {
-
-	module.exports = require("jsonwebtoken");
-
-/***/ },
-/* 12 */,
-/* 13 */,
-/* 14 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -191,31 +172,31 @@ module.exports =
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _jsonwebtoken = __webpack_require__(11);
+	var _jsonwebtoken = __webpack_require__(6);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
-	var _urlJoin = __webpack_require__(15);
+	var _urlJoin = __webpack_require__(7);
 
 	var _urlJoin2 = _interopRequireDefault(_urlJoin);
 
-	var _index = __webpack_require__(16);
+	var _index = __webpack_require__(8);
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _bodyParser = __webpack_require__(10);
+	var _bodyParser = __webpack_require__(11);
 
 	var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
-	var _requestPromise = __webpack_require__(19);
+	var _requestPromise = __webpack_require__(12);
 
 	var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
-	var _verifyCaptcha = __webpack_require__(20);
+	var _verifyCaptcha = __webpack_require__(13);
 
 	var _verifyCaptcha2 = _interopRequireDefault(_verifyCaptcha);
 
-	var _createRuleResponse = __webpack_require__(22);
+	var _createRuleResponse = __webpack_require__(15);
 
 	var _createRuleResponse2 = _interopRequireDefault(_createRuleResponse);
 
@@ -302,7 +283,13 @@ module.exports =
 	exports.default = router;
 
 /***/ },
-/* 15 */
+/* 6 */
+/***/ function(module, exports) {
+
+	module.exports = require("jsonwebtoken@7.1.9");
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -346,10 +333,10 @@ module.exports =
 	});
 
 /***/ },
-/* 16 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var jade = __webpack_require__(17);
+	var jade = __webpack_require__(9);
 
 	module.exports = function template(locals) {
 	var buf = [];
@@ -360,7 +347,7 @@ module.exports =
 	}
 
 /***/ },
-/* 17 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -565,7 +552,7 @@ module.exports =
 	    throw err;
 	  }
 	  try {
-	    str = str || __webpack_require__(18).readFileSync(filename, 'utf8');
+	    str = str || __webpack_require__(10).readFileSync(filename, 'utf8');
 	  } catch (ex) {
 	    rethrow(err, null, lineno);
 	  }
@@ -592,19 +579,25 @@ module.exports =
 	};
 
 /***/ },
-/* 18 */
+/* 10 */
 /***/ function(module, exports) {
 
 	module.exports = require("fs");
 
 /***/ },
-/* 19 */
+/* 11 */
+/***/ function(module, exports) {
+
+	module.exports = require("body-parser");
+
+/***/ },
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("request-promise");
 
 /***/ },
-/* 20 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -614,7 +607,7 @@ module.exports =
 	});
 	exports.default = verifyCaptcha;
 
-	var _request = __webpack_require__(21);
+	var _request = __webpack_require__(14);
 
 	var _request2 = _interopRequireDefault(_request);
 
@@ -653,13 +646,13 @@ module.exports =
 	}
 
 /***/ },
-/* 21 */
+/* 14 */
 /***/ function(module, exports) {
 
 	module.exports = require("request");
 
 /***/ },
-/* 22 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -669,7 +662,7 @@ module.exports =
 	});
 	exports.default = createRuleResponse;
 
-	var _jsonwebtoken = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"jsonwebtoken@7.1.9\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var _jsonwebtoken = __webpack_require__(6);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
@@ -697,7 +690,7 @@ module.exports =
 	}
 
 /***/ },
-/* 23 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -710,23 +703,23 @@ module.exports =
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _request = __webpack_require__(21);
+	var _request = __webpack_require__(14);
 
 	var _request2 = _interopRequireDefault(_request);
 
-	var _auth = __webpack_require__(24);
+	var _auth = __webpack_require__(17);
 
 	var _auth2 = _interopRequireDefault(_auth);
 
-	var _jsonwebtoken = __webpack_require__(11);
+	var _jsonwebtoken = __webpack_require__(6);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
-	var _urlJoin = __webpack_require__(15);
+	var _urlJoin = __webpack_require__(7);
 
 	var _urlJoin2 = _interopRequireDefault(_urlJoin);
 
-	var _checkCaptcha = __webpack_require__(25);
+	var _checkCaptcha = __webpack_require__(18);
 
 	var _checkCaptcha2 = _interopRequireDefault(_checkCaptcha);
 
@@ -862,13 +855,13 @@ module.exports =
 	exports.default = hooks;
 
 /***/ },
-/* 24 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = require("auth0@2.1.0");
 
 /***/ },
-/* 25 */
+/* 18 */
 /***/ function(module, exports) {
 
 	"use strict";

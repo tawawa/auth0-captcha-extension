@@ -1,5 +1,5 @@
 import Express        from 'express';
-import jwt            from 'jsonwebtoken';
+import jwt            from 'jsonwebtoken@7.1.9';
 import URLJoin        from 'url-join';
 import template       from '../views/index.pug';
 import bodyParser     from 'body-parser';

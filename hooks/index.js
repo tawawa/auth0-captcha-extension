@@ -1,7 +1,7 @@
 import express          from 'express';
 import Request          from 'request';
 import auth0            from 'auth0@2.1.0';
-import jwt              from 'jsonwebtoken';
+import jwt              from 'jsonwebtoken@7.1.9';
 import URLJoin          from 'url-join';
 import createRule       from '../rules/check-captcha.js';
 
