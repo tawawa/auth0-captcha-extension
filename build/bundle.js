@@ -1084,6 +1084,7 @@ module.exports =
 	var ManagementClient = _auth2.default.ManagementClient;
 	var hooks = _express2.default.Router();
 
+	console.log(ManagementClient);
 	/*
 	 * Accepts a string path and returns an Express.Middleware
 	 * which verifies if the audience for jwt included that path
@@ -1117,6 +1118,7 @@ module.exports =
 	// Getting Auth0 APIV2 access_token
 	hooks.use(function (req, res, next) {
 	  getToken(req).then(function (accessToken) {
+	    console.log(ManagementClient);
 	    var management = new ManagementClient({
 	      domain: req.webtaskContext.data.AUTH0_DOMAIN,
 	      token: accessToken
