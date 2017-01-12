@@ -251,6 +251,7 @@ module.exports =
 	app.use(_routes2.default);
 
 	app.use(function (err, req, res, next) {
+	  console.log(err);
 	  return res.status(501).end('Internal Server Error');
 	});
 
