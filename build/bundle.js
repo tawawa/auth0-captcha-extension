@@ -85,10 +85,6 @@ module.exports =
 
 	var _webtask2 = _interopRequireDefault(_webtask);
 
-	var _auth0Oauth2Express = __webpack_require__(5);
-
-	var _auth0Oauth2Express2 = _interopRequireDefault(_auth0Oauth2Express);
-
 	var _routes = __webpack_require__(14);
 
 	var _routes2 = _interopRequireDefault(_routes);
@@ -142,241 +138,11 @@ module.exports =
 	};
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var express = __webpack_require__(3);
-	var jade = __webpack_require__(6);
-	var expressJwt = __webpack_require__(7);
-	var url = __webpack_require__(8);
-	var rsaValidation = __webpack_require__(9);
-	var bodyParser = __webpack_require__(10);
-	var jwt = __webpack_require__(11);
-	var request = __webpack_require__(12);
-
-	var getClass = {}.toString;
-	function isFunction(object) {
-	  return object && getClass.call(object) == '[object Function]';
-	}
-
-	function fetchUserInfo(rootTenantAuthority) {
-	  return function (req, res, next) {
-	    request.get(rootTenantAuthority + '/userinfo').set('Authorization', 'Bearer ' + req.body.access_token).end(function (err, userInfo) {
-	      if (err) {
-	        res.redirect(res.locals.baseUrl);
-	        return;
-	      }
-
-	      req.userInfo = userInfo.body;
-
-	      next();
-	    });
-	  };
-	}
-
-	function generateApiToken(secretParam, expiresIn) {
-	  return function (req, res, next) {
-	    var secret = secretParam;
-	    if (isFunction(secretParam)) {
-	      secret = secretParam(req);
-	    }
-
-	    req.apiToken = jwt.sign(req.userInfo, secret, {
-	      algorithm: 'HS256',
-	      issuer: res.locals.baseUrl,
-	      expiresIn: expiresIn
-	    });
-
-	    delete req.userinfo;
-	    next();
-	  };
-	}
-
-	function getUnAuthorizedTemplate(req, res) {
-	  var template = ['html', '  head', '    script.', '      window.location.href = \'#{returnTo}\';', '  body'].join('\n');
-	  var content = jade.compile(template)({
-	    returnTo: req.query && req.query.returnTo ? req.query.returnTo : res.locals.baseUrl
-	  });
-
-	  return content;
-	}
-
-	module.exports = function (opt) {
-	  var ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
-	  var router = express.Router();
-	  var noop = function noop(req, res, next) {
-	    next();
-	  };
-	  var callbackMiddlewares = [noop];
-
-	  opt = opt || {};
-	  opt.clientName = opt.clientName || 'Auth0 Extension';
-	  opt.clientId = opt.clientId;
-	  opt.exp = opt.exp || ONE_DAY_IN_MILLISECONDS;
-	  opt.experimental = opt.experimental || false;
-	  // If we defaults to true all the routes will require authentication
-	  opt.credentialsRequired = typeof opt.credentialsRequired === 'undefined' ? false : opt.credentialsRequired;
-	  opt.scopes = opt.scopes + ' openid profile';
-	  opt.responseType = opt.responseType || 'token';
-	  opt.tokenExpiresIn = opt.tokenExpiresIn || '10h';
-	  opt.rootTenantAuthority = opt.rootTenantAuthority || 'https://auth0.auth0.com';
-	  opt.authenticatedCallback = opt.authenticatedCallback || function (req, res, accessToken, next) {
-	    next();
-	  };
-
-	  if (opt.apiToken && !opt.apiToken.secret) {
-	    console.log('You are using a "development secret" for API token generation. Please setup your secret on "apiToken.secret".');
-	    opt.apiToken.secret = __webpack_require__(13).randomBytes(32).toString('hex');
-	  }
-
-	  if (opt.apiToken && opt.apiToken.secret) {
-	    callbackMiddlewares = [fetchUserInfo(opt.rootTenantAuthority), opt.apiToken.payload || noop, generateApiToken(opt.apiToken.secret, opt.tokenExpiresIn)];
-	  }
-
-	  router.use(function (req, res, next) {
-	    var protocol = 'https';
-	    var pathname = url.parse(req.originalUrl).pathname.replace(req.path, '');
-
-	    if ((process.env.NODE_ENV || 'development') === 'development') {
-	      protocol = req.protocol;
-	      opt.clientId = opt.clientId || 'N3PAwyqXomhNu6IWivtsa3drBfFjmWJL';
-	    }
-
-	    res.locals.baseUrl = url.format({
-	      protocol: protocol,
-	      host: req.get('host'),
-	      pathname: pathname
-	    });
-
-	    next();
-	  });
-
-	  router.use(bodyParser.urlencoded({ extended: false }));
-
-	  router.use(expressJwt({
-	    secret: rsaValidation(),
-	    algorithms: ['RS256'],
-	    credentialsRequired: opt.credentialsRequired
-	  }).unless({ path: ['/login', '/callback'] }));
-
-	  router.get('/login', function (req, res) {
-	    var redirectUri = res.locals.baseUrl + '/callback';
-	    if (req.query.returnTo) {
-	      redirectUri += '?returnTo=' + encodeURIComponent(req.query.returnTo);
-	    }
-	    var audience;
-	    if (typeof opt.audience === 'string') {
-	      audience = '&audience=' + encodeURIComponent(opt.audience);
-	    } else if (typeof opt.audience === 'function') {
-	      var a = opt.audience(req);
-	      if (typeof a === 'string') {
-	        audience = '&audience=' + encodeURIComponent(a);
-	      }
-	    }
-	    var authorizationUrl = [opt.rootTenantAuthority + (opt.experimental ? '/authorize' : '/i/oauth2/authorize'), '?client_id=' + (opt.clientId || res.locals.baseUrl), '&response_type=' + opt.responseType, '&response_mode=form_post', '&scope=' + encodeURIComponent(opt.scopes), '&expiration=' + opt.exp, '&redirect_uri=' + redirectUri, audience].join('');
-
-	    res.redirect(authorizationUrl);
-	  });
-
-	  router.get('/logout', function (req, res) {
-	    var template = ['html', '  head', '    script.', '      sessionStorage.removeItem(\'token\')', '      sessionStorage.removeItem(\'apiToken\')', '      window.location.href = \'' + opt.rootTenantAuthority + '/v2/logout?returnTo=#{baseUrl}&client_id=#{baseUrl}\';', '  body'].join('\n');
-	    var content = jade.compile(template)({
-	      baseUrl: res.locals.baseUrl
-	    });
-
-	    res.header("Content-Type", 'text/html');
-	    res.status(200).send(content);
-	  });
-
-	  router.post('/callback', callbackMiddlewares, function (req, res) {
-	    var token = req.body.access_token;
-	    var dtoken = jwt.decode(token, { complete: true }) || {};
-
-	    // Getting secret
-	    rsaValidation()(req, dtoken.header, dtoken.payload, function (err, secret) {
-	      if (err) {
-	        return res.status(200).send(getUnAuthorizedTemplate(res, res));
-	      }
-
-	      // Verifying access_token
-	      try {
-	        var decoded = jwt.verify(token, secret, { algorithms: ['RS256'] });
-	        var aud = decoded.aud;
-	        var audience;
-
-	        if (typeof opt.audience === 'string') {
-	          audience = opt.audience;
-	        } else if (typeof opt.audience === 'function') {
-	          var a = opt.audience(req);
-	          if (typeof a === 'string') {
-	            audience = a;
-	          }
-	        }
-
-	        // Checking audience
-	        if (aud === audience || aud.indexOf(audience) === -1) {
-	          res.header("Content-Type", 'text/html');
-	          return res.status(200).send(getUnAuthorizedTemplate(req, res));
-	        }
-	      } catch (e) {
-	        return res.status(200).send(getUnAuthorizedTemplate(res, res));
-	      }
-
-	      opt.authenticatedCallback(req, res, req.body.access_token, function (err) {
-	        if (err) {
-	          return res.sendStatus(500);
-	        }
-
-	        var template = ['html', '  head', '    script.', '      sessionStorage.setItem(\'token\', \'' + req.body.access_token + '\');', callbackMiddlewares.length === 1 ? '' : '      sessionStorage.setItem(\'apiToken\', \'' + req.apiToken + '\');', '      window.location.href = \'#{returnTo}\';', '  body'].join('\n');
-	        var content = jade.compile(template)({
-	          returnTo: req.query.returnTo ? req.query.returnTo : res.locals.baseUrl
-	        });
-
-	        res.header("Content-Type", 'text/html');
-	        res.status(200).send(content);
-	      });
-	    });
-	  });
-
-	  router.get('/.well-known/oauth2-client-configuration', function (req, res) {
-	    res.header("Content-Type", 'application/json');
-	    res.status(200).send({
-	      redirect_uris: [res.locals.baseUrl + '/callback'],
-	      client_name: opt.clientName,
-	      post_logout_redirect_uris: [res.locals.baseUrl]
-	    });
-	  });
-
-	  return router;
-	};
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	module.exports = require("jade");
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	module.exports = require("express-jwt");
-
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	module.exports = require("url");
-
-/***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	module.exports = require("auth0-api-jwt-rsa-validation");
-
-/***/ },
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */,
+/* 9 */,
 /* 10 */
 /***/ function(module, exports) {
 
@@ -389,18 +155,8 @@ module.exports =
 	module.exports = require("jsonwebtoken");
 
 /***/ },
-/* 12 */
-/***/ function(module, exports) {
-
-	module.exports = require("superagent");
-
-/***/ },
-/* 13 */
-/***/ function(module, exports) {
-
-	module.exports = require("crypto");
-
-/***/ },
+/* 12 */,
+/* 13 */,
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -945,7 +701,8 @@ module.exports =
 
 	var ManagementClient = _auth2.default.ManagementClient;
 	var hooks = _express2.default.Router();
-
+	console.log("Requested Auth0", _auth2.default);
+	console.log(_auth2.default);
 	console.log(ManagementClient);
 	/*
 	 * Accepts a string path and returns an Express.Middleware
