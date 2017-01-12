@@ -761,7 +761,7 @@ module.exports =
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
 	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
-	      CAPTCHA_URL: (0, _urlJoin2.default)(ctx.PUBLIC_WT_URL, '/'),
+	      CAPTCHA_URL: (0, _urlJoin2.default)(ctx.WT_URL),
 	      EXTENSION_SECRET: ctx.EXTENSION_SECRET
 	    }),
 	    order: 2,
