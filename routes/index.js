@@ -15,9 +15,7 @@ router.use(bodyParser.urlencoded({
 
 router.use(function decodeAndValidateToken(req, res, next) {
 
-  console.log("Got request to", req.path);
-  const params = req.body?req.body:req.query;
-  console.log("Got params", params, req.body, req.query);
+  const params = (req.body && req.body.token)?req.body:req.query;
   const token = params.token;
   const state = params.state;
 
@@ -27,14 +25,10 @@ router.use(function decodeAndValidateToken(req, res, next) {
   const issuer = URLJoin(domain, 'captcha/rule');
   const audience = URLJoin(domain, 'captcha/webtask');
 
-  console.log("Trying to decode token");
 
   jwt.verify(token, secret, { issuer, audience }, function (err, decoded) {
 
-    console.log("Token decoded");
-
     if (err) {
-      console.log('Decode response:', err);
       return createResponse(`Invalid token: ${err.message}`, secret, null, issuer, audience)
         .then(function (token) {
           res.redirect(
@@ -46,8 +40,6 @@ router.use(function decodeAndValidateToken(req, res, next) {
           );
         });
     }
-
-    console.log('Going to route handler');
 
     req.payload = decoded;
     req.state = state;
@@ -73,7 +65,6 @@ router.get('/', function (req, res) {
 
 
 router.post('/', function (req, res) {
-  console.log("Got request to  post the form to captcha");
 
   const {ip, state, payload} = req;
   const ctx = req.webtaskContext.data;

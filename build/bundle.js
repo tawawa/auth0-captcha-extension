@@ -223,9 +223,7 @@ module.exports =
 
 	router.use(function decodeAndValidateToken(req, res, next) {
 
-	  console.log("Got request to", req.path);
-	  var params = req.body ? req.body : req.query;
-	  console.log("Got params", params, req.body, req.query);
+	  var params = req.body && req.body.token ? req.body : req.query;
 	  var token = params.token;
 	  var state = params.state;
 
@@ -235,20 +233,13 @@ module.exports =
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
 
-	  console.log("Trying to decode token");
-
 	  _jsonwebtoken2.default.verify(token, secret, { issuer: issuer, audience: audience }, function (err, decoded) {
 
-	    console.log("Token decoded");
-
 	    if (err) {
-	      console.log('Decode response:', err);
 	      return (0, _createRuleResponse2.default)('Invalid token: ' + err.message, secret, null, issuer, audience).then(function (token) {
 	        res.redirect(domain + '/continue?state=' + state + '&token=' + token);
 	      });
 	    }
-
-	    console.log('Going to route handler');
 
 	    req.payload = decoded;
 	    req.state = state;
@@ -271,8 +262,6 @@ module.exports =
 	});
 
 	router.post('/', function (req, res) {
-	  console.log("Got request to  post the form to captcha");
-
 	  var ip = req.ip,
 	      state = req.state,
 	      payload = req.payload;
@@ -801,7 +790,6 @@ module.exports =
 	  }).then(function () {
 	    res.sendStatus(204);
 	  }).catch(function (e) {
-	    console.log(e);
 	    res.sendStatus(500);
 	  });
 	});

@@ -81,7 +81,6 @@ hooks.post('/on-install', function (req, res) {
     res.sendStatus(204);
   })
   .catch(function (e) {
-    console.log(e);
     res.sendStatus(500);
   });
 });
