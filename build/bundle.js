@@ -701,9 +701,7 @@ module.exports =
 
 	var ManagementClient = _auth2.default.ManagementClient;
 	var hooks = _express2.default.Router();
-	console.log("Requested Auth0", _auth2.default);
-	console.log(_auth2.default);
-	console.log(ManagementClient);
+
 	/*
 	 * Accepts a string path and returns an Express.Middleware
 	 * which verifies if the audience for jwt included that path
@@ -711,7 +709,6 @@ module.exports =
 	 */
 	function createRuleValidator(path) {
 	  return function (req, res, next) {
-	    console.log("Router is intercepting hooks");
 
 	    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
 	      var token = req.headers.authorization.split(' ')[1];
@@ -845,14 +842,14 @@ module.exports =
 	function createRule(config) {
 	  var rule = function (user, context, callback) {
 	    // Based on work done by Nicolas Sebana
-	    var require = global.require;
-	    var jwt = require('jsonwebtoken');
+	    var jwt = escapeRequire('jsonwebtoken');
 	    var audience = "https://" + auth0.domain + "/captcha/webtask";
 	    var issuer = "https://" + auth0.domain + "/captcha/rule";
 
-	    var secret = EXTENSION_SECRET;
-	    var redirectUrl = CAPTCHA_URL;
-	    var maxAllowedFailed = MAX_ALLOWED_FAILED_ATTEMPTS;
+	    var config = CONFIG;
+	    var secret = config.EXTENSION_SECRET;
+	    var redirectUrl = config.CAPTCHA_URL;
+	    var maxAllowedFailed = config.MAX_ALLOWED_FAILED_ATTEMPTS;
 
 	    if (context.protocol === "redirect-callback") {
 
@@ -881,9 +878,9 @@ module.exports =
 	    // This will create a management client with elavated privilages
 
 	    if (maxAllowedFailed) {
-	      var client = require('auth0@2.1.0').ManagementClient(auth0.accessToken);
+	      var client = escapeRequire('auth0@2.1.0').ManagementClient(auth0.accessToken);
 	      client.logs.getAll({
-	        q: "date: [" + (user.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + req.user_id + "\""
+	        q: "date: [" + (user.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + user.user_id + "\""
 	      }).then(redirectToCaptcha).catch(function () {
 	        return callback(new Error('There was an error completing login, please try again later'));
 	      });
@@ -913,11 +910,11 @@ module.exports =
 	    }
 	  }.toString();
 
-	  Object.keys(config).forEach(function (key) {
-	    var re = new RegExp(key, 'g');
-	    rule = rule.replace(re, 'JSON.parse(' + JSON.stringify(config[key]) + ')');
-	  });
+	  var re = new RegExp('CONFIG', 'g');
+	  var rr = new RegExp('escapeRequire', 'g');
 
+	  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config[key]) + '\')');
+	  rule = rule.replace(rr, 'require');
 	  return rule;
 	}
 
