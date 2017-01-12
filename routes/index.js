@@ -9,6 +9,9 @@ import createResponse from '../lib/createRuleResponse';
 const router = Express.Router();
 
 router.use(function decodeAndValidateToken(req, res, next) {
+
+  console.log("Got request to", req.path);
+
   const token = req.query.token || req.body.token;
   const state = req.query.state || req.body.state;
 
@@ -40,6 +43,8 @@ router.use(bodyParser.urlencoded({
 }));
 
 router.get('/', function (req, res) {
+
+  console.log("Got request");
   res.header("Content-Type", 'text/html');
   res.status(200).send(template(Object.assign({
     token: req.token,

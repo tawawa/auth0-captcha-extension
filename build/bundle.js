@@ -203,6 +203,9 @@ module.exports =
 	var router = _express2.default.Router();
 
 	router.use(function decodeAndValidateToken(req, res, next) {
+
+	  console.log("Got request to", req.path);
+
 	  var token = req.query.token || req.body.token;
 	  var state = req.query.state || req.body.state;
 
@@ -229,6 +232,8 @@ module.exports =
 	}));
 
 	router.get('/', function (req, res) {
+
+	  console.log("Got request");
 	  res.header("Content-Type", 'text/html');
 	  res.status(200).send((0, _index2.default)(Object.assign({
 	    token: req.token,
