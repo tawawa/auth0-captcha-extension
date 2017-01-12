@@ -10,7 +10,7 @@
   ],
   "auth0": {
     "createClient": true,
-    "scopes": "create:rules read:rules delete:rules",
+    "scopes": "create:rules read:rules delete:rules read:logs",
     "onInstallPath": "/.extensions/on-install",
     "onUninstallPath": "/.extensions/on-uninstall",
     "onUpdatePath": "/.extensions/on-update"

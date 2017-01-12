@@ -130,7 +130,7 @@ module.exports =
 		"keywords": ["auth0"],
 		"auth0": {
 			"createClient": true,
-			"scopes": "create:rules read:rules delete:rules",
+			"scopes": "create:rules read:rules delete:rules read:logs",
 			"onInstallPath": "/.extensions/on-install",
 			"onUninstallPath": "/.extensions/on-uninstall",
 			"onUpdatePath": "/.extensions/on-update"
@@ -205,7 +205,32 @@ module.exports =
 
 	var _createRuleResponse2 = _interopRequireDefault(_createRuleResponse);
 
+	var _addAuth = __webpack_require__(20);
+
+	var _addAuth2 = _interopRequireDefault(_addAuth);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function redirectBackToContinue(req, res, token) {
+	  var ctx = req.webtaskContext.data;
+	  var domain = ctx.AUTH0_DOMAIN;
+	  var state = req.state;
+
+	  res.redirect('https://' + domain + '/continue?state=' + state + '&token=' + token);
+	}
+
+	function renderPage(req, res, ctx) {
+	  res.header("Content-Type", 'text/html');
+	  res.status(200).send((0, _index2.default)(Object.assign({
+	    style: ctx.STYLES,
+	    message: ctx.CAPTCHA_MESSAGE,
+	    apiKey: ctx.CAPTCHA_SITEKEY,
+	    title: ctx.CAPTCHA_TITLE,
+	    target: ctx.WT_URL,
+	    token: req.token,
+	    state: req.state
+	  }, req.payload)));
+	}
 
 	var router = _express2.default.Router();
 
@@ -240,18 +265,38 @@ module.exports =
 	  });
 	});
 
+	hooks.use(_addAuth2.default);
+
 	router.get('/', function (req, res) {
+
 	  var ctx = req.webtaskContext.data;
-	  res.header("Content-Type", 'text/html');
-	  res.status(200).send((0, _index2.default)(Object.assign({
-	    style: ctx.STYLES,
-	    message: ctx.CAPTCHA_MESSAGE,
-	    apiKey: ctx.CAPTCHA_SITEKEY,
-	    title: ctx.CAPTCHA_TITLE,
-	    target: ctx.WT_URL,
-	    token: req.token,
-	    state: req.state
-	  }, req.payload)));
+	  var state = req.state,
+	      payload = req.payload;
+
+	  var captchaSecret = ctx.CAPTCHA_SECRET;
+	  var sharedSecret = ctx.EXTENSION_SECRET;
+	  var domain = 'https://' + ctx.AUTH0_DOMAIN;
+	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
+	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
+
+	  /* @TODO: Refactor this mess */
+	  if (ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
+	    return req.auth0.logs.getAll({
+	      q: "date: [" + (payload.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + payload.sub + "\""
+	    }).then(function (logs) {
+	      if (logs.length > ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
+	        renderPage(req, res, ctx);
+	        return false;
+	      }
+	      return (0, _createRuleResponse2.default)(null, sharedSecret, payload.sub, issuer, audience);
+	    }).catch(function (e) {
+	      return (0, _createRuleResponse2.default)(e.message, sharedSecret, payload.sub, issuer, audience);
+	    }).then(function (token) {
+	      return token ? redirectBackToContinue() : '';
+	    });
+	  }
+
+	  renderPage(req, res, ctx);
 	});
 
 	router.post('/', function (req, res) {
@@ -268,17 +313,12 @@ module.exports =
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
 
-	  console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
-
 	  (0, _verifyCaptcha2.default)(captchaResponse, captchaSecret, ip).then(function () {
-	    console.log("Verified now create Response");
 	    return (0, _createRuleResponse2.default)(null, sharedSecret, payload.sub, issuer, audience);
 	  }, function (err) {
-	    console.log("Failed now create Response");
 	    return (0, _createRuleResponse2.default)(err.message, sharedSecret, payload.sub, issuer, audience);
 	  }).then(function (token) {
-	    console.log("Forged token");
-	    res.redirect(domain + '/continue?state=' + state + '&token=' + token);
+	    return redirectBackToContinue(req, res, token);
 	  }).catch(function (err) {
 	    console.log(err);
 	    res.status(500).end('Error validating your code');
@@ -728,6 +768,10 @@ module.exports =
 
 	var _checkCaptcha2 = _interopRequireDefault(_checkCaptcha);
 
+	var _addAuth = __webpack_require__(20);
+
+	var _addAuth2 = _interopRequireDefault(_addAuth);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function findRule(rules, name) {
@@ -770,19 +814,10 @@ module.exports =
 	hooks.use('/on-update', createRuleValidator('/.extensions/on-update'));
 
 	// Getting Auth0 APIV2 access_token
-	hooks.use(function (req, res, next) {
-	  getToken(req).then(function (accessToken) {
-	    var management = new ManagementClient({
-	      domain: req.webtaskContext.data.AUTH0_DOMAIN,
-	      token: accessToken
-	    });
-	    req.auth0 = management;
-	    next();
-	  }).catch(next);
-	});
+	hooks.use(_addAuth2.default);
 
 	/* To check everything */
-	hooks.get('/', function (a, b) {
+	hooks.get('/checkall', function (a, b) {
 	  b.status(200).end('Ok');
 	});
 
@@ -793,7 +828,6 @@ module.exports =
 	  req.auth0.rules.create({
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
-	      MAX_ALLOWED_FAILED_ATTEMPTS: parseInt(ctx.MAX_ALLOWED_FAILED_ATTEMPTS, 10) || 0,
 	      EXTENSION_SECRET: ctx.EXTENSION_SECRET,
 	      CAPTCHA_URL: ctx.WT_URL
 	    }),
@@ -829,33 +863,6 @@ module.exports =
 	  });
 	});
 
-	function getToken(req, cb) {
-	  var ctx = req.webtaskContext.data;
-	  var domain = ctx.AUTH0_DOMAIN;
-
-	  var apiUrl = 'https://' + domain + '/oauth/token';
-	  var audience = 'https://' + domain + '/api/v2/';
-	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
-	  var clientId = ctx.AUTH0_CLIENT_ID;
-
-	  return new Promise(function (resolve, reject) {
-	    var config = {
-	      body: {
-	        audience: audience,
-	        grant_type: 'client_credentials',
-	        client_id: clientId,
-	        client_secret: clientSecret
-	      },
-	      json: true
-	    };
-
-	    _request2.default.post(apiUrl, config, function (err, response, body) {
-	      if (err) return reject(err);
-	      resolve(body.access_token);
-	    });
-	  });
-	}
-
 	exports.default = hooks;
 
 /***/ },
@@ -884,7 +891,6 @@ module.exports =
 	    var config = CONFIG;
 	    var secret = config.EXTENSION_SECRET;
 	    var redirectUrl = config.CAPTCHA_URL;
-	    var maxAllowedFailed = config.MAX_ALLOWED_FAILED_ATTEMPTS;
 
 	    if (context.protocol === "redirect-callback") {
 
@@ -910,49 +916,31 @@ module.exports =
 	      }, postVerify);
 	    }
 
-	    // This will create a management client with elavated privilages
+	    var payload = {
+	      sub: user.user_id,
+	      clientName: context.clientName,
+	      lastLogin: user.last_login
+	    };
+	    var options = {
+	      expiresIn: "5m",
+	      audience: audience,
+	      issuer: issuer
+	    };
 
-	    if (maxAllowedFailed) {
-	      var client = escapeRequire('auth0@2.1.0').ManagementClient(auth0.accessToken);
-	      client.logs.getAll({
-	        q: "date: [" + (user.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + user.user_id + "\""
-	      }).then(redirectToCaptcha).catch(function () {
-	        return callback(new Error('There was an error completing login, please try again later'));
-	      });
-	    } else {
-	      redirectToCaptcha([], true);
-	    }
-
-	    function redirectToCaptcha(logs, forced) {
-	      if (forced || logs.length > maxAllowedFailed) {
-	        var payload = {
-	          sub: user.user_id,
-	          clientName: context.clientName
-	        };
-	        var options = {
-	          expiresIn: "5m",
-	          audience: audience,
-	          issuer: issuer
-	        };
-
-	        return jwt.sign(payload, secret, options, function (err, token) {
-	          if (err) {
-	            // You will receive this and its the apps responsibility to display the user.
-	            return callback(new Error('Cannot run Captcha'));
-	          }
-
-	          var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
-
-	          // Issue the redirect command
-	          context.redirect = {
-	            url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
-	          };
-	          callback(null, user, context);
-	        });
+	    return jwt.sign(payload, secret, options, function (err, token) {
+	      if (err) {
+	        // You will receive this and its the apps responsibility to display the user.
+	        return callback(new Error('Cannot run Captcha'));
 	      }
 
-	      return callback(null, user, context);
-	    }
+	      var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
+
+	      // Issue the redirect command
+	      context.redirect = {
+	        url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
+	      };
+	      callback(null, user, context);
+	    });
 	  }.toString();
 
 	  var re = new RegExp('CONFIG', 'g');
@@ -961,6 +949,41 @@ module.exports =
 	  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config) + '\')');
 	  rule = rule.replace(rr, 'require');
 	  return rule;
+	}
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	module.exports = require("auth0-extension-tools");
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = addAuth0ManagementClient;
+
+	var _auth0ExtensionTools = __webpack_require__(19);
+
+	var _auth0ExtensionTools2 = _interopRequireDefault(_auth0ExtensionTools);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function addAuth0ManagementClient(req, res, next) {
+	  var ctx = req.webtaskContext.data;
+	  var domain = ctx.AUTH0_DOMAIN;
+	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
+	  var clientId = ctx.AUTH0_CLIENT_ID;
+	  var opts = { domain: domain, clientId: clientId, clientSecret: clientSecret };
+	  _auth0ExtensionTools2.default.managementApi.getClient(opts).then(function (client) {
+	    req.auth0 = client;
+	    next();
+	  });
 	}
 
 /***/ }

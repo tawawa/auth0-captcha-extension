@@ -1,11 +1,35 @@
-import Express        from 'express';
-import jwt            from 'jsonwebtoken@7.1.9';
-import URLJoin        from 'url-join';
-import template       from '../views/index.pug';
-import bodyParser     from 'body-parser';
-import request        from 'request-promise';
-import verifyCaptcha  from '../lib/verifyCaptcha';
-import createResponse from '../lib/createRuleResponse';
+import Express                  from 'express';
+import jwt                      from 'jsonwebtoken@7.1.9';
+import URLJoin                  from 'url-join';
+import template                 from '../views/index.pug';
+import bodyParser               from 'body-parser';
+import request                  from 'request-promise';
+import verifyCaptcha            from '../lib/verifyCaptcha';
+import createResponse           from '../lib/createRuleResponse';
+import addAuth0ManagementClient from '../lib/addAuth0';
+
+
+function redirectBackToContinue (req, res, token) {
+  const ctx = req.webtaskContext.data;
+  const domain = ctx.AUTH0_DOMAIN;
+  const state = req.state;
+
+  res.redirect(`https://${domain}/continue?state=${state}&token=${token}`);
+}
+
+function renderPage(req, res, ctx){
+  res.header("Content-Type", 'text/html');
+  res.status(200).send(template(Object.assign({
+    style: ctx.STYLES,
+    message: ctx.CAPTCHA_MESSAGE,
+    apiKey: ctx.CAPTCHA_SITEKEY,
+    title: ctx.CAPTCHA_TITLE,
+    target: ctx.WT_URL,
+    token: req.token,
+    state: req.state
+  }, req.payload)));
+}
+
 
 const router = Express.Router();
 
@@ -49,19 +73,34 @@ router.use(function decodeAndValidateToken(req, res, next) {
   });
 });
 
+hooks.use(addAuth0ManagementClient);
 
 router.get('/', function (req, res) {
+
   const ctx = req.webtaskContext.data;
-  res.header("Content-Type", 'text/html');
-  res.status(200).send(template(Object.assign({
-    style: ctx.STYLES,
-    message: ctx.CAPTCHA_MESSAGE,
-    apiKey: ctx.CAPTCHA_SITEKEY,
-    title: ctx.CAPTCHA_TITLE,
-    target: ctx.WT_URL,
-    token: req.token,
-    state: req.state
-  }, req.payload)));
+  const {state, payload} = req;
+  const captchaSecret = ctx.CAPTCHA_SECRET;
+  const sharedSecret = ctx.EXTENSION_SECRET;
+  const domain = `https://${ctx.AUTH0_DOMAIN}`;
+  const issuer = URLJoin(domain, 'captcha/rule');
+  const audience = URLJoin(domain, 'captcha/webtask');
+
+  /* @TODO: Refactor this mess */
+  if (ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
+    return req.auth0.logs.getAll({
+	    q: "date: [" + (payload.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + payload.sub + "\""
+    }).then(function(logs){
+      if(logs.length > ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
+        renderPage(req, res, ctx);
+        return false;
+      }
+      return createResponse(null, sharedSecret, payload.sub, issuer, audience);
+    }).catch(function(e){
+      return createResponse(e.message, sharedSecret, payload.sub, issuer, audience)
+    }).then(token => token ? redirectBackToContinue() :'');
+  }
+
+  renderPage(req, res, ctx);
 });
 
 
@@ -76,27 +115,15 @@ router.post('/', function (req, res) {
   const issuer = URLJoin(domain, 'captcha/rule');
   const audience = URLJoin(domain, 'captcha/webtask');
 
-  console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
-
   verifyCaptcha(captchaResponse, captchaSecret, ip)
-    .then(function () {
-      console.log("Verified now create Response");
-      return createResponse(null, sharedSecret, payload.sub, issuer, audience);
-    }, function (err) {
-      console.log("Failed now create Response");
-      return createResponse(err.message, sharedSecret, payload.sub, issuer, audience);
-    }).then(function (token) {
-      console.log("Forged token");
-      res.redirect(
-        domain +
-        '/continue?state=' +
-        state +
-        '&token=' +
-        token
-      );
-    }).catch(function (err) {
-      console.log(err);
-      res.status(500).end('Error validating your code');
+    .then(
+      () => createResponse(null, sharedSecret, payload.sub, issuer, audience),
+      (err) => createResponse(err.message, sharedSecret, payload.sub, issuer, audience)
+    )
+    .then((token) => redirectBackToContinue(req, res, token))
+    .catch(function (err) {
+       console.log(err);
+       res.status(500).end('Error validating your code');
     });
 });
 
