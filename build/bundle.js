@@ -760,7 +760,7 @@ module.exports =
 	  req.auth0.rules.create({
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
-	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS
+	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0
 	    }),
 	    order: 2,
 	    enabled: true,
