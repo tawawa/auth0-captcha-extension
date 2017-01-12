@@ -22,8 +22,8 @@ html
       };
     .container
       form#captchaform.form-signin(action=target, method='POST')
-        h1 title
-        p message
+        h1=title
+        p=message
         input(type='hidden', value=state, name='state')
         input(type='hidden', value=token, name='token')
         .g-recaptcha(data-sitekey=siteKey, data-callback='submitform')

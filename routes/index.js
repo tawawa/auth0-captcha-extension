@@ -6,6 +6,7 @@ import bodyParser     from 'body-parser';
 import request        from 'request-promise';
 import verifyCaptcha  from '../lib/verifyCaptcha';
 import createResponse from '../lib/createRuleResponse';
+
 const router = Express.Router();
 
 router.use(function decodeAndValidateToken(req, res, next) {
@@ -17,24 +18,35 @@ router.use(function decodeAndValidateToken(req, res, next) {
 
   const ctx = req.webtaskContext.data;
   const secret = ctx.EXTENSION_SECRET;
-  const domain = ctx.AUTH0_DOMAIN;
+  const domain = `https://${ctx.AUTH0_DOMAIN}`;
   const issuer = URLJoin(domain, 'captcha/rule');
   const audience = URLJoin(domain, 'captcha/webtask');
+
+  console.log("Trying to decode token");
+
   jwt.verify(token, secret, { issuer, audience }, function (err, decoded) {
+
+    console.log("Token decoded");
+
     if (err) {
+      console.log('Decode response:', err);
       return createResponse(`Invalid token: ${err.message}`, secret, null, issuer, audience).then(function (token) {
         res.redirect(
-          req.webtaskContext.data.AUTH0_DOMAIN +
+          domain +
           '/continue?state=' +
           req.query.state +
           '&token=' + token
         );
       });
     }
+
+    console.log('Going to route handler');
+
+    req.payload = decoded;
     req.state = state;
     req.token = token;
-    req.payload = decoded;
     next();
+
   });
 });
 
@@ -43,21 +55,25 @@ router.use(bodyParser.urlencoded({
 }));
 
 router.get('/', function (req, res) {
-
-  console.log("Got request");
+  const ctx = req.webtaskContext.data;
   res.header("Content-Type", 'text/html');
   res.status(200).send(template(Object.assign({
+    apiKey: ctx.CAPTCHA_SITEKEY,
     token: req.token,
     target: req.path,
+    message: ctx.CAPTCHA_MESSAGE,
+    title: ctx.CAPTCHA_TITLE
   }, req.payload)));
 });
 
 
 router.post('/', function (req, res) {
+  console.log("Got request to  post the form to captcha");
+
   const {ip, state, payload} = req;
   const ctx = req.webtaskContext.data;
-  const sharedSecret = ctx.EXTENSION_SECRET;
-  const domain = ctx.AUTH0_DOMAIN;
+  const sharedSecret = ctx.CAPTCHA_SECRET;
+  const domain = `https://${ctx.AUTH0_DOMAIN}`;
   const captchaResponse = req.body["g-recaptcha-response"];
   const issuer = URLJoin(domain, 'captcha/rule');
   const audience = URLJoin(domain, 'captcha/webtask');

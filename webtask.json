@@ -14,5 +14,20 @@
     "onInstallPath": "/.extensions/on-install",
     "onUninstallPath": "/.extensions/on-uninstall",
     "onUpdatePath": "/.extensions/on-update"
+  },
+  "secrets": {
+    "CAPTCHA_SITEKEY": {
+      "description": "The google recaptcha sitekey"
+    },
+    "CAPTCHA_SECRET": {
+      "description": "The google recaptcha api secret",
+      "type": "password"
+    },
+    "CAPTCHA_MESSAGE": {
+      "description": "The message you want to be displayed to the user on captcha page"
+    },
+    "CAPTCHA_TITLE": {
+      "description": "The title you want to be displayed on the user captcha page"
+    }
   }
 }
