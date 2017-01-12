@@ -760,7 +760,9 @@ module.exports =
 	  req.auth0.rules.create({
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
-	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0
+	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
+	      CAPTCHA_URL: (0, _urlJoin2.default)(ctx.PUBLIC_WT_URL, '/'),
+	      EXTENSION_SECRET: ctx.EXTENSION_SECRET
 	    }),
 	    order: 2,
 	    enabled: true,
@@ -832,7 +834,7 @@ module.exports =
 
 /***/ },
 /* 25 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
 
@@ -843,8 +845,14 @@ module.exports =
 	function createRule(config) {
 	  var rule = function (user, context, callback) {
 	    // Based on work done by Nicolas Sebana
-	    var secret = configuration.CAPTCHA_SECRET;
-	    var jwt = __webpack_require__(11);
+	    var require = global.require;
+	    var jwt = require('jsonwebtoken');
+	    var audience = "https://" + auth0.domain + "/captcha/webtask";
+	    var issuer = "https://" + auth0.domain + "/captcha/rule";
+
+	    var secret = EXTENSION_SECRET;
+	    var redirectUrl = CAPTCHA_URL;
+	    var maxAllowedFailed = MAX_ALLOWED_FAILED_ATTEMPTS;
 
 	    if (context.protocol === "redirect-callback") {
 
@@ -865,15 +873,15 @@ module.exports =
 	      ;
 
 	      return jwt.verify(context.request.query.token, secret, {
-	        audience: ruleUri,
-	        issuer: wtUri
+	        audience: issuer,
+	        issuer: audience
 	      }, postVerify);
 	    }
 
 	    // This will create a management client with elavated privilages
 
-	    if (MAX_ALLOWED_FAILED_ATTEMPTS) {
-	      var client = __webpack_require__(24).ManagementClient(auth0.accessToken);
+	    if (maxAllowedFailed) {
+	      var client = require('auth0@2.1.0').ManagementClient(auth0.accessToken);
 	      client.logs.getAll({
 	        q: "date: [" + (user.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + req.user_id + "\""
 	      }).then(redirectToCaptcha).catch(function () {
@@ -884,18 +892,15 @@ module.exports =
 	    }
 
 	    function redirectToCaptcha(logs, forced) {
-	      if (forced || logs.length > MAX_ALLOWED_FAILED_ATTEMPTS) {
+	      if (forced || logs.length > maxAllowedFailed) {
 	        var token = jwt.sign({
 	          sub: user.user_id,
 	          clientName: context.clientName
 	        }, secret, {
 	          expiresInMinutes: 5,
-	          audience: wtUri,
-	          issuer: ruleUri
+	          audience: audience,
+	          issuer: issuer
 	        });
-	        // This will redirect to the right place
-	        var redirectUrl = auth0.domain.replace('.auth0.com', '') + '.webtask.io/captcha';
-
 	        var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
 
 	        // Issue the redirect command
