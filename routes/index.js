@@ -13,7 +13,7 @@ router.use(function decodeAndValidateToken(req, res, next) {
 
   console.log("Got request to", req.path);
   const params = req.body?req.body:req.query;
-  console.log("Got params", params, body, query);
+  console.log("Got params", params, req.body, req.query);
   const token = params.token;
   const state = params.state;
 
