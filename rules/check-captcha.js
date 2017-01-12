@@ -1,7 +1,7 @@
 export default function createRule(config) {
   let rule = (function (user, context, callback) {
     // Based on work done by Nicolas Sebana
-    const jwt = escapeRequire('jsonwebtoken');
+    const jwt = escapeRequire('jsonwebtoken@7.1.9');
     const audience = `https://${auth0.domain}/captcha/webtask`;
     const issuer = `https://${auth0.domain}/captcha/rule`;
 

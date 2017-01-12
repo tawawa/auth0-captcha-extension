@@ -677,7 +677,7 @@ module.exports =
 	    };
 
 	    var header = {
-	      expiresIn: "2m",
+	      expiresIn: "5m",
 	      audience: audience,
 	      issuer: issuer
 	    };
@@ -872,7 +872,7 @@ module.exports =
 	function createRule(config) {
 	  var rule = function (user, context, callback) {
 	    // Based on work done by Nicolas Sebana
-	    var jwt = escapeRequire('jsonwebtoken');
+	    var jwt = escapeRequire('jsonwebtoken@7.1.9');
 	    var audience = "https://" + auth0.domain + "/captcha/webtask";
 	    var issuer = "https://" + auth0.domain + "/captcha/rule";
 
