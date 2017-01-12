@@ -65,6 +65,11 @@ export default function createRule(config) {
         };
 
         return jwt.sign(payload, secret, options, function(err, token) {
+          if(err){
+            // You will receive this and its the apps responsibility to display the user.
+            return callback(new Error('Cannot run Captcha'));
+          }
+
           const separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
 
           // Issue the redirect command

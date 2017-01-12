@@ -662,14 +662,14 @@ module.exports =
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	exports.default = createRuleResponse;
 
-	var _jsonwebtoken = __webpack_require__(11);
+	var _jsonwebtoken = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"jsonwebtoken@7.1.9\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
@@ -690,7 +690,6 @@ module.exports =
 	    };
 
 	    _jsonwebtoken2.default.sign(payload, secret, header, function (err, token) {
-	      console.log('Jwt.sign response', secret, header);
 	      if (err) return reject(err);
 	      resolve(token);
 	    });
@@ -940,6 +939,11 @@ module.exports =
 	        };
 
 	        return jwt.sign(payload, secret, options, function (err, token) {
+	          if (err) {
+	            // You will receive this and its the apps responsibility to display the user.
+	            return callback(new Error('Cannot run Captcha'));
+	          }
+
 	          var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
 
 	          // Issue the redirect command
