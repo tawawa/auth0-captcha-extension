@@ -51,7 +51,7 @@ module.exports =
 
 	var _webtaskTools2 = _interopRequireDefault(_webtaskTools);
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(2);
 
 	var _index2 = _interopRequireDefault(_index);
 
@@ -63,158 +63,12 @@ module.exports =
 
 /***/ },
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	exports.fromConnect = exports.fromExpress = fromConnect;
-	exports.fromHapi = fromHapi;
-	exports.fromServer = exports.fromRestify = fromServer;
-
-	// API functions
-
-	function fromConnect(connectFn) {
-	    return function (context, req, res) {
-	        var normalizeRouteRx = createRouteNormalizationRx(req.x_wt.jtn);
-
-	        req.originalUrl = req.url;
-	        req.url = req.url.replace(normalizeRouteRx, '/');
-	        req.webtaskContext = attachStorageHelpers(context);
-
-	        return connectFn(req, res);
-	    };
-	}
-
-	function fromHapi(server) {
-	    var webtaskContext;
-
-	    server.ext('onRequest', function (request, response) {
-	        var normalizeRouteRx = createRouteNormalizationRx(request.x_wt.jtn);
-
-	        request.setUrl(request.url.replace(normalizeRouteRx, '/'));
-	        request.webtaskContext = webtaskContext;
-	    });
-
-	    return function (context, req, res) {
-	        var dispatchFn = server._dispatch();
-
-	        webtaskContext = attachStorageHelpers(context);
-
-	        dispatchFn(req, res);
-	    };
-	}
-
-	function fromServer(httpServer) {
-	    return function (context, req, res) {
-	        var normalizeRouteRx = createRouteNormalizationRx(req.x_wt.jtn);
-
-	        req.originalUrl = req.url;
-	        req.url = req.url.replace(normalizeRouteRx, '/');
-	        req.webtaskContext = attachStorageHelpers(context);
-
-	        return httpServer.emit('request', req, res);
-	    };
-	}
-
-	// Helper functions
-
-	function createRouteNormalizationRx(jtn) {
-	    var normalizeRouteBase = '^\/api\/run\/[^\/]+\/';
-	    var normalizeNamedRoute = '(?:[^\/\?#]*\/?)?';
-
-	    return new RegExp(normalizeRouteBase + (jtn ? normalizeNamedRoute : ''));
-	}
-
-	function attachStorageHelpers(context) {
-	    context.read = context.secrets.EXT_STORAGE_URL ? readFromPath : readNotAvailable;
-	    context.write = context.secrets.EXT_STORAGE_URL ? writeToPath : writeNotAvailable;
-
-	    return context;
-
-	    function readNotAvailable(path, options, cb) {
-	        var Boom = __webpack_require__(2);
-
-	        if (typeof options === 'function') {
-	            cb = options;
-	            options = {};
-	        }
-
-	        cb(Boom.preconditionFailed('Storage is not available in this context'));
-	    }
-
-	    function readFromPath(path, options, cb) {
-	        var Boom = __webpack_require__(2);
-	        var Request = __webpack_require__(3);
-
-	        if (typeof options === 'function') {
-	            cb = options;
-	            options = {};
-	        }
-
-	        Request({
-	            uri: context.secrets.EXT_STORAGE_URL,
-	            method: 'GET',
-	            headers: options.headers || {},
-	            qs: { path: path },
-	            json: true
-	        }, function (err, res, body) {
-	            if (err) return cb(Boom.wrap(err, 502));
-	            if (res.statusCode === 404 && Object.hasOwnProperty.call(options, 'defaultValue')) return cb(null, options.defaultValue);
-	            if (res.statusCode >= 400) return cb(Boom.create(res.statusCode, body && body.message));
-
-	            cb(null, body);
-	        });
-	    }
-
-	    function writeNotAvailable(path, data, options, cb) {
-	        var Boom = __webpack_require__(2);
-
-	        if (typeof options === 'function') {
-	            cb = options;
-	            options = {};
-	        }
-
-	        cb(Boom.preconditionFailed('Storage is not available in this context'));
-	    }
-
-	    function writeToPath(path, data, options, cb) {
-	        var Boom = __webpack_require__(2);
-	        var Request = __webpack_require__(3);
-
-	        if (typeof options === 'function') {
-	            cb = options;
-	            options = {};
-	        }
-
-	        Request({
-	            uri: context.secrets.EXT_STORAGE_URL,
-	            method: 'PUT',
-	            headers: options.headers || {},
-	            qs: { path: path },
-	            body: data
-	        }, function (err, res, body) {
-	            if (err) return cb(Boom.wrap(err, 502));
-	            if (res.statusCode >= 400) return cb(Boom.create(res.statusCode, body && body.message));
-
-	            cb(null);
-	        });
-	    }
-	}
+	module.exports = require("webtask-tools");
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
-
-	module.exports = require("boom");
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	module.exports = require("request");
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -223,23 +77,23 @@ module.exports =
 	  value: true
 	});
 
-	var _express = __webpack_require__(5);
+	var _express = __webpack_require__(3);
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _webtask = __webpack_require__(6);
+	var _webtask = __webpack_require__(4);
 
 	var _webtask2 = _interopRequireDefault(_webtask);
 
-	var _auth0Oauth2Express = __webpack_require__(7);
+	var _auth0Oauth2Express = __webpack_require__(5);
 
 	var _auth0Oauth2Express2 = _interopRequireDefault(_auth0Oauth2Express);
 
-	var _routes = __webpack_require__(16);
+	var _routes = __webpack_require__(14);
 
 	var _routes2 = _interopRequireDefault(_routes);
 
-	var _hooks = __webpack_require__(24);
+	var _hooks = __webpack_require__(23);
 
 	var _hooks2 = _interopRequireDefault(_hooks);
 
@@ -252,19 +106,20 @@ module.exports =
 
 	app.use(function (err, req, res, next) {
 	  console.log(err);
+	  console.log(req.path);
 	  return res.status(501).end('Internal Server Error');
 	});
 
 	exports.default = app;
 
 /***/ },
-/* 5 */
+/* 3 */
 /***/ function(module, exports) {
 
 	module.exports = require("express");
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -287,19 +142,19 @@ module.exports =
 	};
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var express = __webpack_require__(5);
-	var jade = __webpack_require__(8);
-	var expressJwt = __webpack_require__(9);
-	var url = __webpack_require__(10);
-	var rsaValidation = __webpack_require__(11);
-	var bodyParser = __webpack_require__(12);
-	var jwt = __webpack_require__(13);
-	var request = __webpack_require__(14);
+	var express = __webpack_require__(3);
+	var jade = __webpack_require__(6);
+	var expressJwt = __webpack_require__(7);
+	var url = __webpack_require__(8);
+	var rsaValidation = __webpack_require__(9);
+	var bodyParser = __webpack_require__(10);
+	var jwt = __webpack_require__(11);
+	var request = __webpack_require__(12);
 
 	var getClass = {}.toString;
 	function isFunction(object) {
@@ -373,7 +228,7 @@ module.exports =
 
 	  if (opt.apiToken && !opt.apiToken.secret) {
 	    console.log('You are using a "development secret" for API token generation. Please setup your secret on "apiToken.secret".');
-	    opt.apiToken.secret = __webpack_require__(15).randomBytes(32).toString('hex');
+	    opt.apiToken.secret = __webpack_require__(13).randomBytes(32).toString('hex');
 	  }
 
 	  if (opt.apiToken && opt.apiToken.secret) {
@@ -498,55 +353,55 @@ module.exports =
 	};
 
 /***/ },
-/* 8 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = require("jade");
 
 /***/ },
-/* 9 */
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = require("express-jwt");
 
 /***/ },
-/* 10 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = require("url");
 
 /***/ },
-/* 11 */
+/* 9 */
 /***/ function(module, exports) {
 
 	module.exports = require("auth0-api-jwt-rsa-validation");
 
 /***/ },
-/* 12 */
+/* 10 */
 /***/ function(module, exports) {
 
 	module.exports = require("body-parser");
 
 /***/ },
-/* 13 */
+/* 11 */
 /***/ function(module, exports) {
 
 	module.exports = require("jsonwebtoken");
 
 /***/ },
-/* 14 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("superagent");
 
 /***/ },
-/* 15 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("crypto");
 
 /***/ },
-/* 16 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -555,35 +410,35 @@ module.exports =
 	  value: true
 	});
 
-	var _express = __webpack_require__(5);
+	var _express = __webpack_require__(3);
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _jsonwebtoken = __webpack_require__(13);
+	var _jsonwebtoken = __webpack_require__(11);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
-	var _urlJoin = __webpack_require__(17);
+	var _urlJoin = __webpack_require__(15);
 
 	var _urlJoin2 = _interopRequireDefault(_urlJoin);
 
-	var _index = __webpack_require__(18);
+	var _index = __webpack_require__(16);
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _bodyParser = __webpack_require__(12);
+	var _bodyParser = __webpack_require__(10);
 
 	var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
-	var _requestPromise = __webpack_require__(21);
+	var _requestPromise = __webpack_require__(19);
 
 	var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
-	var _verifyCaptcha = __webpack_require__(22);
+	var _verifyCaptcha = __webpack_require__(20);
 
 	var _verifyCaptcha2 = _interopRequireDefault(_verifyCaptcha);
 
-	var _createRuleResponse = __webpack_require__(23);
+	var _createRuleResponse = __webpack_require__(22);
 
 	var _createRuleResponse2 = _interopRequireDefault(_createRuleResponse);
 
@@ -592,6 +447,7 @@ module.exports =
 	var router = _express2.default.Router();
 
 	router.use(function decodeAndValidateToken(req, res, next) {
+	  console.log("Router is intercepting routes");
 	  var token = req.query.token || req.body.token;
 	  var state = req.query.state || req.body.state;
 
@@ -650,7 +506,7 @@ module.exports =
 	exports.default = router;
 
 /***/ },
-/* 17 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -694,10 +550,10 @@ module.exports =
 	});
 
 /***/ },
-/* 18 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var jade = __webpack_require__(19);
+	var jade = __webpack_require__(17);
 
 	module.exports = function template(locals) {
 	var buf = [];
@@ -708,7 +564,7 @@ module.exports =
 	}
 
 /***/ },
-/* 19 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -913,7 +769,7 @@ module.exports =
 	    throw err;
 	  }
 	  try {
-	    str = str || __webpack_require__(20).readFileSync(filename, 'utf8');
+	    str = str || __webpack_require__(18).readFileSync(filename, 'utf8');
 	  } catch (ex) {
 	    rethrow(err, null, lineno);
 	  }
@@ -940,19 +796,19 @@ module.exports =
 	};
 
 /***/ },
-/* 20 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("fs");
 
 /***/ },
-/* 21 */
+/* 19 */
 /***/ function(module, exports) {
 
 	module.exports = require("request-promise");
 
 /***/ },
-/* 22 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -962,7 +818,7 @@ module.exports =
 	});
 	exports.default = verifyCaptcha;
 
-	var _request = __webpack_require__(3);
+	var _request = __webpack_require__(21);
 
 	var _request2 = _interopRequireDefault(_request);
 
@@ -1002,7 +858,13 @@ module.exports =
 	}
 
 /***/ },
-/* 23 */
+/* 21 */
+/***/ function(module, exports) {
+
+	module.exports = require("request");
+
+/***/ },
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1012,7 +874,7 @@ module.exports =
 	});
 	exports.default = createRuleResponse;
 
-	var _jsonwebtoken = __webpack_require__(13);
+	var _jsonwebtoken = __webpack_require__(11);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
@@ -1040,7 +902,7 @@ module.exports =
 	}
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1049,27 +911,27 @@ module.exports =
 	  value: true
 	});
 
-	var _express = __webpack_require__(5);
+	var _express = __webpack_require__(3);
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _request = __webpack_require__(3);
+	var _request = __webpack_require__(21);
 
 	var _request2 = _interopRequireDefault(_request);
 
-	var _auth = __webpack_require__(25);
+	var _auth = __webpack_require__(24);
 
 	var _auth2 = _interopRequireDefault(_auth);
 
-	var _jsonwebtoken = __webpack_require__(13);
+	var _jsonwebtoken = __webpack_require__(11);
 
 	var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
-	var _urlJoin = __webpack_require__(17);
+	var _urlJoin = __webpack_require__(15);
 
 	var _urlJoin2 = _interopRequireDefault(_urlJoin);
 
-	var _checkCaptcha = __webpack_require__(26);
+	var _checkCaptcha = __webpack_require__(25);
 
 	var _checkCaptcha2 = _interopRequireDefault(_checkCaptcha);
 
@@ -1092,6 +954,8 @@ module.exports =
 	 */
 	function createRuleValidator(path) {
 	  return function (req, res, next) {
+	    console.log("Router is intercepting hooks");
+
 	    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
 	      var token = req.headers.authorization.split(' ')[1];
 	      var isValid = _jsonwebtoken2.default.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {
@@ -1118,7 +982,6 @@ module.exports =
 	// Getting Auth0 APIV2 access_token
 	hooks.use(function (req, res, next) {
 	  getToken(req).then(function (accessToken) {
-	    console.log(ManagementClient);
 	    var management = new ManagementClient({
 	      domain: req.webtaskContext.data.AUTH0_DOMAIN,
 	      token: accessToken
@@ -1129,7 +992,7 @@ module.exports =
 	});
 
 	/* To check everything */
-	hooks.get('/checkall', function (a, b) {
+	hooks.get('/', function (a, b) {
 	  b.status(200).end('Ok');
 	});
 
@@ -1204,13 +1067,13 @@ module.exports =
 	exports.default = hooks;
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports) {
 
-	module.exports = require("auth0");
+	module.exports = require("auth0@2.1.0");
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1223,7 +1086,7 @@ module.exports =
 	  var rule = function (user, context, callback) {
 	    // Based on work done by Nicolas Sebana
 	    var secret = configuration.CAPTCHA_SECRET;
-	    var jwt = __webpack_require__(13);
+	    var jwt = __webpack_require__(11);
 
 	    if (context.protocol === "redirect-callback") {
 
@@ -1252,7 +1115,7 @@ module.exports =
 	    // This will create a management client with elavated privilages
 
 	    if (MAX_ALLOWED_FAILED_ATTEMPTS) {
-	      var client = __webpack_require__(27).ManagementClient(auth0.accessToken);
+	      var client = __webpack_require__(24).ManagementClient(auth0.accessToken);
 	      client.logs.getAll({
 	        q: "date: [" + (user.last_login || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + req.user_id + "\""
 	      }).then(redirectToCaptcha).catch(function () {
@@ -1292,12 +1155,6 @@ module.exports =
 	    rule = rule.replace(re, 'JSON.parse(' + JSON.stringify(config[key]) + ')');
 	  });
 	}
-
-/***/ },
-/* 27 */
-/***/ function(module, exports) {
-
-	module.exports = require("auth0@2.1.0");
 
 /***/ }
 /******/ ]);
