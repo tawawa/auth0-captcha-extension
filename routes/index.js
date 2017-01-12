@@ -30,14 +30,16 @@ router.use(function decodeAndValidateToken(req, res, next) {
 
     if (err) {
       console.log('Decode response:', err);
-      return createResponse(`Invalid token: ${err.message}`, secret, null, issuer, audience).then(function (token) {
-        res.redirect(
-          domain +
-          '/continue?state=' +
-          req.query.state +
-          '&token=' + token
-        );
-      });
+      return createResponse(`Invalid token: ${err.message}`, secret, null, issuer, audience)
+        .then(function (token) {
+          res.redirect(
+            domain +
+            '/continue?state=' +
+            state +
+            '&token=' +
+            token
+          );
+        });
     }
 
     console.log('Going to route handler');
@@ -62,7 +64,8 @@ router.get('/', function (req, res) {
     apiKey: ctx.CAPTCHA_SITEKEY,
     title: ctx.CAPTCHA_TITLE,
     target: ctx.WT_URL,
-    token: req.token
+    token: req.token,
+    state: req.state
   }, req.payload)));
 });
 

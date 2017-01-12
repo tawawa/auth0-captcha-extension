@@ -239,7 +239,7 @@ module.exports =
 	    if (err) {
 	      console.log('Decode response:', err);
 	      return (0, _createRuleResponse2.default)('Invalid token: ' + err.message, secret, null, issuer, audience).then(function (token) {
-	        res.redirect(domain + '/continue?state=' + req.query.state + '&token=' + token);
+	        res.redirect(domain + '/continue?state=' + state + '&token=' + token);
 	      });
 	    }
 
@@ -264,7 +264,8 @@ module.exports =
 	    apiKey: ctx.CAPTCHA_SITEKEY,
 	    title: ctx.CAPTCHA_TITLE,
 	    target: ctx.WT_URL,
-	    token: req.token
+	    token: req.token,
+	    state: req.state
 	  }, req.payload)));
 	});
 
