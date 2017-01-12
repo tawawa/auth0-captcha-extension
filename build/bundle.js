@@ -211,7 +211,7 @@ module.exports =
 
 	  var ctx = req.webtaskContext.data;
 	  var secret = ctx.EXTENSION_SECRET;
-	  var domain = ctx.AUTH0_DOMAIN;
+	  var domain = 'https://' + ctx.AUTH0_DOMAIN;
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
 
@@ -224,14 +224,15 @@ module.exports =
 	    if (err) {
 	      console.log('Decode response:', err);
 	      return (0, _createRuleResponse2.default)('Invalid token: ' + err.message, secret, null, issuer, audience).then(function (token) {
-	        res.redirect(req.webtaskContext.data.AUTH0_DOMAIN + '/continue?state=' + req.query.state + '&token=' + token);
+	        res.redirect(domain + '/continue?state=' + req.query.state + '&token=' + token);
 	      });
 	    }
 
 	    console.log('Going to route handler');
+
+	    req.payload = decoded;
 	    req.state = state;
 	    req.token = token;
-	    req.payload = decoded;
 	    next();
 	  });
 	});
@@ -258,7 +259,7 @@ module.exports =
 
 	  var ctx = req.webtaskContext.data;
 	  var sharedSecret = ctx.EXTENSION_SECRET;
-	  var domain = ctx.AUTH0_DOMAIN;
+	  var domain = 'https://' + ctx.AUTH0_DOMAIN;
 	  var captchaResponse = req.body["g-recaptcha-response"];
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
