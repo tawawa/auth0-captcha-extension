@@ -220,7 +220,7 @@ module.exports =
 	router.use(function decodeAndValidateToken(req, res, next) {
 
 	  console.log("Got request to", req.path);
-	  var params = req.query ? req.query : req.body;
+	  var params = req.body ? req.body : req.query;
 	  var token = params.token;
 	  var state = params.state;
 

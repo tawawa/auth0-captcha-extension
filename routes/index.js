@@ -12,7 +12,7 @@ const router = Express.Router();
 router.use(function decodeAndValidateToken(req, res, next) {
 
   console.log("Got request to", req.path);
-  const params = req.query?req.query:req.body;
+  const params = req.body?req.body:req.query;
   const token = params.token;
   const state = params.state;
 
