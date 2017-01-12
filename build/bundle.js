@@ -217,6 +217,10 @@ module.exports =
 
 	var router = _express2.default.Router();
 
+	router.use(_bodyParser2.default.urlencoded({
+	  extended: true
+	}));
+
 	router.use(function decodeAndValidateToken(req, res, next) {
 
 	  console.log("Got request to", req.path);
@@ -252,10 +256,6 @@ module.exports =
 	    next();
 	  });
 	});
-
-	router.use(_bodyParser2.default.urlencoded({
-	  extended: true
-	}));
 
 	router.get('/', function (req, res) {
 	  var ctx = req.webtaskContext.data;

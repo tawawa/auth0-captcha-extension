@@ -9,6 +9,10 @@ import createResponse from '../lib/createRuleResponse';
 
 const router = Express.Router();
 
+router.use(bodyParser.urlencoded({
+  extended: true
+}));
+
 router.use(function decodeAndValidateToken(req, res, next) {
 
   console.log("Got request to", req.path);
@@ -53,9 +57,6 @@ router.use(function decodeAndValidateToken(req, res, next) {
   });
 });
 
-router.use(bodyParser.urlencoded({
-  extended: true
-}));
 
 router.get('/', function (req, res) {
   const ctx = req.webtaskContext.data;
