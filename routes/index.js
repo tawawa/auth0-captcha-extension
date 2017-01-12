@@ -12,9 +12,9 @@ const router = Express.Router();
 router.use(function decodeAndValidateToken(req, res, next) {
 
   console.log("Got request to", req.path);
-
-  const token = req.query.token || req.body.token;
-  const state = req.query.state || req.body.state;
+  const params = req.query?req.query:req.body;
+  const token = params.token;
+  const state = params.state;
 
   const ctx = req.webtaskContext.data;
   const secret = ctx.EXTENSION_SECRET;

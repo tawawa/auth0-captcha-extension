@@ -220,9 +220,9 @@ module.exports =
 	router.use(function decodeAndValidateToken(req, res, next) {
 
 	  console.log("Got request to", req.path);
-
-	  var token = req.query.token || req.body.token;
-	  var state = req.query.state || req.body.state;
+	  var params = req.query ? req.query : req.body;
+	  var token = params.token;
+	  var state = params.state;
 
 	  var ctx = req.webtaskContext.data;
 	  var secret = ctx.EXTENSION_SECRET;
