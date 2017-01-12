@@ -1048,7 +1048,7 @@ module.exports =
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _request = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"request@2.67.0\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var _request = __webpack_require__(3);
 
 	var _request2 = _interopRequireDefault(_request);
 
@@ -1175,11 +1175,14 @@ module.exports =
 	    (0, _request2.default)({
 	      method: "POST",
 	      uri: apiUrl,
-	      json: {
+	      body: JSON.stringify({
 	        audience: audience,
 	        grant_type: 'client_credentials',
 	        client_id: clientId,
 	        client_secret: clientSecret
+	      }),
+	      headers: {
+	        'Content-type': 'application/json'
 	      }
 	    }).end(function (err, response, body) {
 	      if (err) return reject(err);
