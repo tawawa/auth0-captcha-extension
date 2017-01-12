@@ -284,10 +284,12 @@ module.exports =
 	    return req.auth0.logs.getAll({
 	      q: "date: [" + (payload.lastLogin || '*') + " TO *] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + payload.sub + "\""
 	    }).then(function (logs) {
+	      console.log("Got logs", logs.length);
 	      if (logs.length > ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
 	        renderPage(req, res, ctx);
 	        return false;
 	      }
+	      // Respond success
 	      return (0, _createRuleResponse2.default)(null, sharedSecret, payload.sub, issuer, audience);
 	    }).catch(function (e) {
 	      return (0, _createRuleResponse2.default)(e.message, sharedSecret, payload.sub, issuer, audience);
