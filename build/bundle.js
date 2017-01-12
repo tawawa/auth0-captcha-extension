@@ -913,7 +913,7 @@ module.exports =
 	  var re = new RegExp('CONFIG', 'g');
 	  var rr = new RegExp('escapeRequire', 'g');
 
-	  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config[key]) + '\')');
+	  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config) + '\')');
 	  rule = rule.replace(rr, 'require');
 	  return rule;
 	}
