@@ -744,16 +744,15 @@ module.exports =
 
 	    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
 	      var token = req.headers.authorization.split(' ')[1];
-	      var isValid = _jsonwebtoken2.default.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {
+	      return _jsonwebtoken2.default.verify(token, req.webtaskContext.data.EXTENSION_SECRET, {
 	        audience: (0, _urlJoin2.default)(req.webtaskContext.data.WT_URL, path),
 	        issuer: 'https://' + req.webtaskContext.data.AUTH0_DOMAIN
+	      }, function (err, decoded) {
+	        if (err) {
+	          return res.sendStatus(401);
+	        }
+	        return next();
 	      });
-
-	      if (!isValid) {
-	        return res.sendStatus(401);
-	      }
-
-	      return next();
 	    }
 
 	    return res.sendStatus(401);
