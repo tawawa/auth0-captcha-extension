@@ -286,10 +286,10 @@ module.exports =
 
 	  (0, _verifyCaptcha2.default)(captchaResponse, captchaSecret, ip).then(function () {
 	    console.log("Verified now create Response");
-	    return (0, _createRuleResponse2.default)(null, sharedSecret, payload, issuer, audience);
+	    return (0, _createRuleResponse2.default)(null, sharedSecret, payload.sub, issuer, audience);
 	  }, function (err) {
 	    console.log("Failed now create Response");
-	    return (0, _createRuleResponse2.default)(err.message, sharedSecret, payload, issuer, audience);
+	    return (0, _createRuleResponse2.default)(err.message, sharedSecret, payload.sub, issuer, audience);
 	  }).then(function (token) {
 	    console.log("Forged token");
 	    res.redirect(domain + '/continue?state=' + state + '&token=' + token);
@@ -622,7 +622,7 @@ module.exports =
 
 	function verifyCaptcha(captchaResponse, secret, ip) {
 
-	  return new Promise(function (request, resolve) {
+	  return new Promise(function (resolve, reject) {
 
 	    function handleResponse(error, response, body) {
 	      if (error) {
@@ -641,14 +641,14 @@ module.exports =
 	        reject(new Error("Error from reCaptcha: " + JSON.stringify(data)));
 	      }
 	    }
-
-	    request.post('https://www.google.com/recaptcha/api/siteverify', {
+	    var config = {
 	      form: {
 	        response: captchaResponse,
 	        secret: secret,
 	        remoteip: ip
 	      }
-	    }, handleResponse);
+	    };
+	    _request2.default.post('https://www.google.com/recaptcha/api/siteverify', config, handleResponse);
 	  });
 	}
 

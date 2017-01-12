@@ -81,10 +81,10 @@ router.post('/', function (req, res) {
   verifyCaptcha(captchaResponse, captchaSecret, ip)
     .then(function () {
       console.log("Verified now create Response");
-      return createResponse(null, sharedSecret, payload, issuer, audience);
+      return createResponse(null, sharedSecret, payload.sub, issuer, audience);
     }, function (err) {
       console.log("Failed now create Response");
-      return createResponse(err.message, sharedSecret, payload, issuer, audience);
+      return createResponse(err.message, sharedSecret, payload.sub, issuer, audience);
     }).then(function (token) {
       console.log("Forged token");
       res.redirect(
