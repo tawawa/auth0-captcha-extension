@@ -1048,7 +1048,7 @@ module.exports =
 
 	var _express2 = _interopRequireDefault(_express);
 
-	var _request = __webpack_require__(3);
+	var _request = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"request@2.67.0\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 
 	var _request2 = _interopRequireDefault(_request);
 
@@ -1170,8 +1170,6 @@ module.exports =
 	  var audience = 'https://' + domain + '/api/v2/';
 	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
 	  var clientId = ctx.AUTH0_CLIENT_ID;
-	  console.log('URL', apiUrl);
-	  console.log('URL', ctx);
 
 	  return new Promise(function (req, res) {
 	    (0, _request2.default)({
