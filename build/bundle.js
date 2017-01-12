@@ -221,6 +221,7 @@ module.exports =
 
 	  console.log("Got request to", req.path);
 	  var params = req.body ? req.body : req.query;
+	  console.log("Got params", params, body, query);
 	  var token = params.token;
 	  var state = params.state;
 
