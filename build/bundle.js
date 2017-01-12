@@ -262,6 +262,7 @@ module.exports =
 	});
 
 	router.post('/', function (req, res) {
+	  console.log("Recieved post");
 	  var ip = req.ip,
 	      state = req.state,
 	      payload = req.payload;
@@ -273,12 +274,20 @@ module.exports =
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
 
+	  console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
+
 	  (0, _verifyCaptcha2.default)(captchaResponse, sharedSecret, ip).then(function () {
+	    console.log("Verified now create Response");
 	    return (0, _createRuleResponse2.default)(null, secret, payload, issuer, audience);
 	  }, function (err) {
+	    console.log("Failed now create Response");
 	    return (0, _createRuleResponse2.default)(err.message, secret, payload, issuer, audience);
 	  }).then(function (token) {
+	    console.log("Forged token");
 	    res.redirect(domain + '/continue?state=' + state + '&token=' + token);
+	  }).catch(function (err) {
+	    console.log(err);
+	    res.status(500).end('Error validating your code');
 	  });
 	});
 
@@ -613,7 +622,7 @@ module.exports =
 	      }
 
 	      if (response.statusCode !== 200) {
-	        reject('Error validating captcha: ' + response.statusCode);
+	        reject(new Error('Error validating captcha: ' + response.statusCode));
 	      }
 
 	      var data = JSON.parse(body);
@@ -621,12 +630,11 @@ module.exports =
 	      if (data.success) {
 	        resolve(true);
 	      } else {
-	        reject("Error from reCaptcha: " + JSON.stringify(data));
+	        reject(new Error("Error from reCaptcha: " + JSON.stringify(data)));
 	      }
 	    }
 
-	    request.post({
-	      url: 'https://www.google.com/recaptcha/api/siteverify',
+	    request.post('https://www.google.com/recaptcha/api/siteverify', {
 	      form: {
 	        response: captchaResponse,
 	        secret: secret,
