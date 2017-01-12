@@ -152,9 +152,9 @@ module.exports =
 				"default": "Please verify that you are a human being."
 			},
 			"MAX_ALLOWED_FAILED_ATTEMPTS": {
-				"description": "Maximum allowed failed login attempts, beyond this the captcha will start showing",
+				"description": "Maximum allowed failed login attempts, beyond this the captcha will start showing, 0 means the dialog will always popup",
 				"type": "number",
-				"default": 0
+				"default": 3
 			},
 			"CAPTCHA_TITLE": {
 				"description": "The title you want to be displayed on the user captcha page",
