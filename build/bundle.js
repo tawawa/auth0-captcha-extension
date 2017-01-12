@@ -292,7 +292,7 @@ module.exports =
 	    }).catch(function (e) {
 	      return (0, _createRuleResponse2.default)(e.message, sharedSecret, payload.sub, issuer, audience);
 	    }).then(function (token) {
-	      return token ? redirectBackToContinue() : '';
+	      return token ? redirectBackToContinue(req, res, token) : '';
 	    });
 	  }
 

@@ -97,7 +97,7 @@ router.get('/', function (req, res) {
       return createResponse(null, sharedSecret, payload.sub, issuer, audience);
     }).catch(function(e){
       return createResponse(e.message, sharedSecret, payload.sub, issuer, audience)
-    }).then(token => token ? redirectBackToContinue() :'');
+    }).then(token => token ? redirectBackToContinue(req, res, token):'');
   }
 
   renderPage(req, res, ctx);
