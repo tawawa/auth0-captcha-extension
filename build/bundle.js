@@ -282,7 +282,7 @@ module.exports =
 	  /* @TODO: Refactor this mess */
 	  if (ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
 	    return req.auth0.logs.getAll({
-	      q: "date: [" + (payload.lastLogin || '*') + " to '*'] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + payload.sub + "\""
+	      q: "date: [" + (payload.lastLogin || '*') + " TO *] AND type: (\"f\" OR \"fp\" OR \"fu\") AND user_id: \"" + payload.sub + "\""
 	    }).then(function (logs) {
 	      if (logs.length > ctx.MAX_ALLOWED_FAILED_ATTEMPTS) {
 	        renderPage(req, res, ctx);
