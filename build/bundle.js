@@ -214,12 +214,21 @@ module.exports =
 	  var domain = ctx.AUTH0_DOMAIN;
 	  var issuer = (0, _urlJoin2.default)(domain, 'captcha/rule');
 	  var audience = (0, _urlJoin2.default)(domain, 'captcha/webtask');
+
+	  console.log("Trying to decode token");
+
 	  _jsonwebtoken2.default.verify(token, secret, { issuer: issuer, audience: audience }, function (err, decoded) {
+
+	    console.log("Token decoded");
+
 	    if (err) {
+	      console.log('Decode response:', err);
 	      return (0, _createRuleResponse2.default)('Invalid token: ' + err.message, secret, null, issuer, audience).then(function (token) {
 	        res.redirect(req.webtaskContext.data.AUTH0_DOMAIN + '/continue?state=' + req.query.state + '&token=' + token);
 	      });
 	    }
+
+	    console.log('Going to route handler');
 	    req.state = state;
 	    req.token = token;
 	    req.payload = decoded;
@@ -232,8 +241,7 @@ module.exports =
 	}));
 
 	router.get('/', function (req, res) {
-
-	  console.log("Got request");
+	  console.log("Got request to render the form");
 	  res.header("Content-Type", 'text/html');
 	  res.status(200).send((0, _index2.default)(Object.assign({
 	    token: req.token,
@@ -242,6 +250,8 @@ module.exports =
 	});
 
 	router.post('/', function (req, res) {
+	  console.log("Got request to  post the form to captcha");
+
 	  var ip = req.ip,
 	      state = req.state,
 	      payload = req.payload;
