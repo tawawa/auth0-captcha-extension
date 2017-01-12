@@ -1,9 +1,9 @@
 {
   "title": "Captcha Extension",
   "name": "captcha-extension",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "abhishek.hingikar@auth0.com",
-  "description": "An extension that uses Google's ReCaptcha",
+  "description": "An extension that uses Google's reCaptcha",
   "type": "application",
   "keywords": [
     "auth0"
@@ -24,13 +24,18 @@
       "type": "password"
     },
     "STYLES": {
-      "description": "Any custom styles you to be added to the head of the page use this to customize the look and feel of your website",
-      "default": "html{\n}"
+      "description": "Any custom styles you to be added to the head of the page use this to customize the look and feel of your website, if you want to use external stylesheets please consider using `@import` instead",
+      "default": "html{}"
     },
     "CAPTCHA_MESSAGE": {
       "description": "The message you want to be displayed to the user on captcha page",
       "default": "Please verify that you are a human being."
 
+    },
+    "MAX_ALLOWED_FAILED_ATTEMPTS":{
+      "description": "Maximum allowed failed login attempts, beyond this the captcha will start showing",
+      "type": "number",
+      "default": 0
     },
     "CAPTCHA_TITLE": {
       "description": "The title you want to be displayed on the user captcha page",

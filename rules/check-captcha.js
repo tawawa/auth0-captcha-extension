@@ -38,7 +38,6 @@ export default function createRule(config) {
       );
     }
 
-
     // This will create a management client with elavated privilages
 
     if (maxAllowedFailed) {
