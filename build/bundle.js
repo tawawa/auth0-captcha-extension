@@ -153,7 +153,7 @@ module.exports =
 			},
 			"MAX_ALLOWED_FAILED_ATTEMPTS": {
 				"description": "Maximum allowed failed login attempts, beyond this the captcha will start showing, 0 means the dialog will always popup",
-				"type": "number",
+				"type": "text",
 				"default": "3"
 			},
 			"CAPTCHA_TITLE": {
