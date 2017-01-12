@@ -767,7 +767,8 @@ module.exports =
 	    stage: "login_success"
 	  }).then(function () {
 	    res.sendStatus(204);
-	  }).catch(function () {
+	  }).catch(function (e) {
+	    console.log(e);
 	    res.sendStatus(500);
 	  });
 	});
