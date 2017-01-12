@@ -912,6 +912,8 @@ module.exports =
 	    var re = new RegExp(key, 'g');
 	    rule = rule.replace(re, 'JSON.parse(' + JSON.stringify(config[key]) + ')');
 	  });
+
+	  return rule;
 	}
 
 /***/ }
