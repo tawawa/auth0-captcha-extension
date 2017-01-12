@@ -89,7 +89,7 @@ module.exports =
 
 	var _routes2 = _interopRequireDefault(_routes);
 
-	var _hooks = __webpack_require__(16);
+	var _hooks = __webpack_require__(18);
 
 	var _hooks2 = _interopRequireDefault(_hooks);
 
@@ -205,7 +205,7 @@ module.exports =
 
 	var _createRuleResponse2 = _interopRequireDefault(_createRuleResponse);
 
-	var _addAuth = __webpack_require__(20);
+	var _addAuth = __webpack_require__(16);
 
 	var _addAuth2 = _interopRequireDefault(_addAuth);
 
@@ -265,7 +265,7 @@ module.exports =
 	  });
 	});
 
-	hooks.use(_addAuth2.default);
+	router.use(_addAuth2.default);
 
 	router.get('/', function (req, res) {
 
@@ -743,6 +743,41 @@ module.exports =
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.default = addAuth0ManagementClient;
+
+	var _auth0ExtensionTools = __webpack_require__(17);
+
+	var _auth0ExtensionTools2 = _interopRequireDefault(_auth0ExtensionTools);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function addAuth0ManagementClient(req, res, next) {
+	  var ctx = req.webtaskContext.data;
+	  var domain = ctx.AUTH0_DOMAIN;
+	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
+	  var clientId = ctx.AUTH0_CLIENT_ID;
+	  var opts = { domain: domain, clientId: clientId, clientSecret: clientSecret };
+	  _auth0ExtensionTools2.default.managementApi.getClient(opts).then(function (client) {
+	    req.auth0 = client;
+	    next();
+	  });
+	}
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	module.exports = require("auth0-extension-tools");
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 
 	var _express = __webpack_require__(3);
 
@@ -752,7 +787,7 @@ module.exports =
 
 	var _request2 = _interopRequireDefault(_request);
 
-	var _auth = __webpack_require__(17);
+	var _auth = __webpack_require__(19);
 
 	var _auth2 = _interopRequireDefault(_auth);
 
@@ -764,11 +799,11 @@ module.exports =
 
 	var _urlJoin2 = _interopRequireDefault(_urlJoin);
 
-	var _checkCaptcha = __webpack_require__(18);
+	var _checkCaptcha = __webpack_require__(20);
 
 	var _checkCaptcha2 = _interopRequireDefault(_checkCaptcha);
 
-	var _addAuth = __webpack_require__(20);
+	var _addAuth = __webpack_require__(16);
 
 	var _addAuth2 = _interopRequireDefault(_addAuth);
 
@@ -866,13 +901,13 @@ module.exports =
 	exports.default = hooks;
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports) {
 
 	module.exports = require("auth0@2.1.0");
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -949,41 +984,6 @@ module.exports =
 	  rule = rule.replace(re, 'JSON.parse(\'' + JSON.stringify(config) + '\')');
 	  rule = rule.replace(rr, 'require');
 	  return rule;
-	}
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	module.exports = require("auth0-extension-tools");
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = addAuth0ManagementClient;
-
-	var _auth0ExtensionTools = __webpack_require__(19);
-
-	var _auth0ExtensionTools2 = _interopRequireDefault(_auth0ExtensionTools);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function addAuth0ManagementClient(req, res, next) {
-	  var ctx = req.webtaskContext.data;
-	  var domain = ctx.AUTH0_DOMAIN;
-	  var clientSecret = ctx.AUTH0_CLIENT_SECRET;
-	  var clientId = ctx.AUTH0_CLIENT_ID;
-	  var opts = { domain: domain, clientId: clientId, clientSecret: clientSecret };
-	  _auth0ExtensionTools2.default.managementApi.getClient(opts).then(function (client) {
-	    req.auth0 = client;
-	    next();
-	  });
 	}
 
 /***/ }

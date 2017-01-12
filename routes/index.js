@@ -73,7 +73,7 @@ router.use(function decodeAndValidateToken(req, res, next) {
   });
 });
 
-hooks.use(addAuth0ManagementClient);
+router.use(addAuth0ManagementClient);
 
 router.get('/', function (req, res) {
 
