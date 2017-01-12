@@ -65,7 +65,7 @@ router.get('/', function (req, res) {
 
 
 router.post('/', function (req, res) {
-
+  console.log("Recieved post");
   const {ip, state, payload} = req;
   const ctx = req.webtaskContext.data;
   const sharedSecret = ctx.CAPTCHA_SECRET;
@@ -74,12 +74,17 @@ router.post('/', function (req, res) {
   const issuer = URLJoin(domain, 'captcha/rule');
   const audience = URLJoin(domain, 'captcha/webtask');
 
+  console.log("verifying captcha response", sharedSecret, ip, captchaResponse);
+
   verifyCaptcha(captchaResponse, sharedSecret, ip)
     .then(function () {
+      console.log("Verified now create Response");
       return createResponse(null, secret, payload, issuer, audience);
     }, function (err) {
+      console.log("Failed now create Response");
       return createResponse(err.message, secret, payload, issuer, audience);
     }).then(function (token) {
+      console.log("Forged token");
       res.redirect(
         domain +
         '/continue?state=' +
@@ -87,6 +92,9 @@ router.post('/', function (req, res) {
         '&token=' +
         token
       );
+    }).catch(function (err) {
+      console.log(err);
+      res.status(500).end('Error validating your code');
     });
 });
 
