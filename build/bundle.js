@@ -662,7 +662,7 @@ module.exports =
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -690,6 +690,7 @@ module.exports =
 	    };
 
 	    _jsonwebtoken2.default.sign(payload, secret, header, function (err, token) {
+	      console.log('Jwt.sign response', secret, header);
 	      if (err) return reject(err);
 	      resolve(token);
 	    });
@@ -928,20 +929,25 @@ module.exports =
 
 	    function redirectToCaptcha(logs, forced) {
 	      if (forced || logs.length > maxAllowedFailed) {
-	        var token = jwt.sign({
+	        var payload = {
 	          sub: user.user_id,
 	          clientName: context.clientName
-	        }, secret, {
-	          expiresInMinutes: 5,
+	        };
+	        var options = {
+	          expiresIn: "5m",
 	          audience: audience,
 	          issuer: issuer
-	        });
-	        var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
-
-	        // Issue the redirect command
-	        context.redirect = {
-	          url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
 	        };
+
+	        return jwt.sign(payload, secret, options, function (err, token) {
+	          var separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
+
+	          // Issue the redirect command
+	          context.redirect = {
+	            url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
+	          };
+	          callback(null, user, context);
+	        });
 	      }
 
 	      return callback(null, user, context);

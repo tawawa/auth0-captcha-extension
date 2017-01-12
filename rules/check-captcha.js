@@ -54,23 +54,25 @@ export default function createRule(config) {
 
     function redirectToCaptcha(logs, forced) {
       if (forced || logs.length > maxAllowedFailed) {
-        const token = jwt.sign({
+        const payload = {
           sub: user.user_id,
           clientName: context.clientName
-        },
-          secret,
-          {
-            expiresInMinutes: 5,
-            audience: audience,
-            issuer: issuer
-          }
-        );
-        const separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
-
-        // Issue the redirect command
-        context.redirect = {
-          url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
         };
+        const options = {
+          expiresIn: "5m",
+          audience: audience,
+          issuer: issuer
+        };
+
+        return jwt.sign(payload, secret, options, function(err, token) {
+          const separator = redirectUrl.indexOf('?') !== -1 ? "&" : "?";
+
+          // Issue the redirect command
+          context.redirect = {
+            url: redirectUrl + separator + "token=" + token + "&webtask_no_cache=1"
+          };
+          callback(null, user, context);
+        });
 
       }
 
