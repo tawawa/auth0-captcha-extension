@@ -58,11 +58,11 @@ router.get('/', function (req, res) {
   const ctx = req.webtaskContext.data;
   res.header("Content-Type", 'text/html');
   res.status(200).send(template(Object.assign({
-    apiKey: ctx.CAPTCHA_SITEKEY,
-    token: req.token,
-    target: req.path,
     message: ctx.CAPTCHA_MESSAGE,
-    title: ctx.CAPTCHA_TITLE
+    apiKey: ctx.CAPTCHA_SITEKEY,
+    title: ctx.CAPTCHA_TITLE,
+    target: ctx.WT_URL,
+    token: req.token
   }, req.payload)));
 });
 

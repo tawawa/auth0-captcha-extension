@@ -70,8 +70,8 @@ hooks.post('/on-install', function (req, res) {
     name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
     script: createRule({
       MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
-      CAPTCHA_URL: URLJoin(ctx.WT_URL),
       EXTENSION_SECRET: ctx.EXTENSION_SECRET,
+      CAPTCHA_URL: ctx.WT_URL
     }),
     order: 2,
     enabled: true,

@@ -260,11 +260,11 @@ module.exports =
 	  var ctx = req.webtaskContext.data;
 	  res.header("Content-Type", 'text/html');
 	  res.status(200).send((0, _index2.default)(Object.assign({
-	    apiKey: ctx.CAPTCHA_SITEKEY,
-	    token: req.token,
-	    target: req.path,
 	    message: ctx.CAPTCHA_MESSAGE,
-	    title: ctx.CAPTCHA_TITLE
+	    apiKey: ctx.CAPTCHA_SITEKEY,
+	    title: ctx.CAPTCHA_TITLE,
+	    target: ctx.WT_URL,
+	    token: req.token
 	  }, req.payload)));
 	});
 
@@ -790,8 +790,8 @@ module.exports =
 	    name: 'captcha-rule-PLEASE-DO-NOT-RENAME',
 	    script: (0, _checkCaptcha2.default)({
 	      MAX_ALLOWED_FAILED_ATTEMPTS: ctx.MAX_ALLOWED_FAILED_ATTEMPTS || 0,
-	      CAPTCHA_URL: (0, _urlJoin2.default)(ctx.WT_URL),
-	      EXTENSION_SECRET: ctx.EXTENSION_SECRET
+	      EXTENSION_SECRET: ctx.EXTENSION_SECRET,
+	      CAPTCHA_URL: ctx.WT_URL
 	    }),
 	    order: 2,
 	    enabled: true,
